@@ -1,0 +1,269 @@
+#!/usr/bin/env -S yarn repl -s
+
+PrintTransactionLogs
+
+-- Token holder addresses for mocking
+Alias ArsHolder "0x7587caefc8096f5f40acb83a09df031a018c66ec"
+Alias TokenHolder "0x05e793ce0c6027323ac150f6d45c2344d28b6019"
+Alias CUSDCHolder "0x5e34bc93a7506ecc8562ade4d5c8b090247a6349"
+
+Web3Fork "https://mainnet-eth.aquarius.loan/@13057957" (ArsHolder TokenHolder CUSDCHolder)
+UseConfigs mainnet
+
+-- Verify current borrow state indices
+Assert Equal (Comptroller ArsBorrowState cETH "index") (271900236502310314207275303654594550)
+Assert Equal (Comptroller ArsBorrowState aUSDC "index") (374249356944686866589343968372424802182093834)
+Assert Equal (Comptroller ArsBorrowState aDAI "index") (304681283805461047990696432440416)
+Assert Equal (Comptroller ArsBorrowState aWBTC "index") (57091242808581665886978349924495532483402440045)
+Assert Equal (Comptroller ArsBorrowState aWBTC2 "index") (4737883459778580214958447506665029825205802627436)
+Assert Equal (Comptroller ArsBorrowState cUSDT "index") (423043052052409576153627131768953764641085770)
+Assert Equal (Comptroller ArsBorrowState aARS "index") (1090703374692561421496444039421391844)
+Assert Equal (Comptroller ArsBorrowState cUNI "index") (1003224738961829505932781071832714863)
+Assert Equal (Comptroller ArsBorrowState cLINK "index") (1021334963447383149197229014847138287)
+Assert Equal (Comptroller ArsBorrowState aZRX "index") (276469710290458744488056479123899)
+Assert Equal (Comptroller ArsBorrowState cTUSD "index") (0)
+Assert Equal (Comptroller ArsBorrowState aBAT "index") (233011432934823645559082204456702)
+Assert Equal (Comptroller ArsBorrowState cAAVE "index") (0)
+Assert Equal (Comptroller ArsBorrowState aSAI "index") (0)
+Assert Equal (Comptroller ArsBorrowState cSUSHI "index") (0)
+Assert Equal (Comptroller ArsBorrowState cMKR "index") (0)
+Assert Equal (Comptroller ArsBorrowState aREP "index") (2887409755927065791842943220324690)
+Assert Equal (Comptroller ArsBorrowState cYFI "index") (0)
+
+-- Verify current supply state indices
+Assert Equal (Comptroller ArsSupplyState cETH "index") (3266868720475524419878033121250905466535312)
+Assert Equal (Comptroller ArsSupplyState aUSDC "index") (32567188278514519540286631350261809001131)
+Assert Equal (Comptroller ArsSupplyState aDAI "index") (48523828872606782857477338624275950203274)
+Assert Equal (Comptroller ArsSupplyState aWBTC "index") (98873610159998754418561608689329824102859175)
+Assert Equal (Comptroller ArsSupplyState aWBTC2 "index") (551089483977648654874859795061443575084844994561)
+Assert Equal (Comptroller ArsSupplyState cUSDT "index") (50534796386054496931306603320108731513487)
+Assert Equal (Comptroller ArsSupplyState aARS "index") (3836027216477076374142846684153643830549513)
+Assert Equal (Comptroller ArsSupplyState cUNI "index") (57432610740828790697901777052414007754599)
+Assert Equal (Comptroller ArsSupplyState cLINK "index") (852011526290128056285332840775220381888746)
+Assert Equal (Comptroller ArsSupplyState aZRX "index") (11697528643270194078002497271204681811028)
+Assert Equal (Comptroller ArsSupplyState cTUSD "index") (0)
+Assert Equal (Comptroller ArsSupplyState aBAT "index") (9278159415477864616059533796790401482787)
+Assert Equal (Comptroller ArsSupplyState cAAVE "index") (0)
+Assert Equal (Comptroller ArsSupplyState aSAI "index") (0)
+Assert Equal (Comptroller ArsSupplyState cSUSHI "index") (0)
+Assert Equal (Comptroller ArsSupplyState cMKR "index") (0)
+Assert Equal (Comptroller ArsSupplyState aREP "index") (10822464444875983176893501598723703991037)
+Assert Equal (Comptroller ArsSupplyState cYFI "index") (0)
+
+-- Verify current supply speeds
+Assert Equal (Comptroller ArsSpeed cETH) (10750000000000000)
+Assert Equal (Comptroller ArsSpeed aUSDC) (67000000000000000)
+Assert Equal (Comptroller ArsSpeed aDAI) (67000000000000000)
+Assert Equal (Comptroller ArsSpeed aWBTC) (0)
+Assert Equal (Comptroller ArsSpeed aWBTC2) (10750000000000000)
+Assert Equal (Comptroller ArsSpeed cUSDT) (9650000000000000)
+Assert Equal (Comptroller ArsSpeed aARS) (5000000000000000)
+Assert Equal (Comptroller ArsSpeed cUNI) (1462500000000000)
+Assert Equal (Comptroller ArsSpeed cLINK) (1462500000000000)
+Assert Equal (Comptroller ArsSpeed aZRX) (1462500000000000)
+Assert Equal (Comptroller ArsSpeed cTUSD) (0)
+Assert Equal (Comptroller ArsSpeed aBAT) (1462500000000000)
+Assert Equal (Comptroller ArsSpeed cAAVE) (0)
+Assert Equal (Comptroller ArsSpeed aSAI) (0)
+Assert Equal (Comptroller ArsSpeed cSUSHI) (0)
+Assert Equal (Comptroller ArsSpeed cMKR) (0)
+Assert Equal (Comptroller ArsSpeed aREP) (0)
+Assert Equal (Comptroller ArsSpeed cYFI) (0)
+
+-- Deploy latest Comptroller
+ComptrollerImpl Deploy Standard ComptrollerSplitArsRewards
+
+-- Delegate and propose update
+From ArsHolder (Ars Delegate ArsHolder)
+From ArsHolder (GovernorBravo GovernorBravo Propose "Upgrade Comptroller" [(Address Unitroller) (Address ComptrollerSplitArsRewards)] [0 0] ["_setPendingImplementation(address)" "_become(address)"] [[(Address ComptrollerSplitArsRewards)] [(Address Unitroller)]])
+
+-- Fast forward, vote, queue, execute
+MineBlock
+AdvanceBlocks 14000
+From ArsHolder (GovernorBravo GovernorBravo Proposal LastProposal Vote For)
+AdvanceBlocks 20000
+GovernorBravo GovernorBravo Proposal LastProposal Queue
+IncreaseTime 604910
+GovernorBravo GovernorBravo Proposal LastProposal Execute
+MineBlock
+
+-- Merge ABIs so that we can call the newly introduced functions without an error
+ComptrollerImpl ComptrollerSplitArsRewards MergeABI
+
+-- Verify new borrow state indices
+Assert Equal (Comptroller ArsBorrowState cETH "index") (271900236502310314207275303654594550)
+Assert Equal (Comptroller ArsBorrowState aUSDC "index") (374249356944686866589343968372424802182093834)
+Assert Equal (Comptroller ArsBorrowState aDAI "index") (304681283805461047990696432440416)
+Assert Equal (Comptroller ArsBorrowState aWBTC "index") (57091242808581665886978349924495532483402440045)
+Assert Equal (Comptroller ArsBorrowState aWBTC2 "index") (4737883459778580214958447506665029825205802627436)
+Assert Equal (Comptroller ArsBorrowState cUSDT "index") (423043052052409576153627131768953764641085770)
+Assert Equal (Comptroller ArsBorrowState aARS "index") (1090703374692561421496444039421391844)
+Assert Equal (Comptroller ArsBorrowState cUNI "index") (1003224738961829505932781071832714863)
+Assert Equal (Comptroller ArsBorrowState cLINK "index") (1021334963447383149197229014847138287)
+Assert Equal (Comptroller ArsBorrowState aZRX "index") (276469710290458744488056479123899)
+Assert Equal (Comptroller ArsBorrowState cTUSD "index") (1e36)
+Assert Equal (Comptroller ArsBorrowState aBAT "index") (233011432934823645559082204456702)
+Assert Equal (Comptroller ArsBorrowState cAAVE "index") (1e36)
+Assert Equal (Comptroller ArsBorrowState aSAI "index") (1e36)
+Assert Equal (Comptroller ArsBorrowState cSUSHI "index") (1e36)
+Assert Equal (Comptroller ArsBorrowState cMKR "index") (1e36)
+Assert Equal (Comptroller ArsBorrowState aREP "index") (2887409755927065791842943220324690)
+Assert Equal (Comptroller ArsBorrowState cYFI "index") (1e36)
+
+-- Verify new supply state indices
+Assert Equal (Comptroller ArsSupplyState cETH "index") (3266868720475524419878033121250905466535312)
+Assert Equal (Comptroller ArsSupplyState aUSDC "index") (32567188278514519540286631350261809001131)
+Assert Equal (Comptroller ArsSupplyState aDAI "index") (48523828872606782857477338624275950203274)
+Assert Equal (Comptroller ArsSupplyState aWBTC "index") (98873610159998754418561608689329824102859175)
+Assert Equal (Comptroller ArsSupplyState aWBTC2 "index") (551089483977648654874859795061443575084844994561)
+Assert Equal (Comptroller ArsSupplyState cUSDT "index") (50534796386054496931306603320108731513487)
+Assert Equal (Comptroller ArsSupplyState aARS "index") (3836027216477076374142846684153643830549513)
+Assert Equal (Comptroller ArsSupplyState cUNI "index") (57432610740828790697901777052414007754599)
+Assert Equal (Comptroller ArsSupplyState cLINK "index") (852011526290128056285332840775220381888746)
+Assert Equal (Comptroller ArsSupplyState aZRX "index") (11697528643270194078002497271204681811028)
+Assert Equal (Comptroller ArsSupplyState cTUSD "index") (1e36)
+Assert Equal (Comptroller ArsSupplyState aBAT "index") (9278159415477864616059533796790401482787)
+Assert Equal (Comptroller ArsSupplyState cAAVE "index") (1e36)
+Assert Equal (Comptroller ArsSupplyState aSAI "index") (1e36)
+Assert Equal (Comptroller ArsSupplyState cSUSHI "index") (1e36)
+Assert Equal (Comptroller ArsSupplyState cMKR "index") (1e36)
+Assert Equal (Comptroller ArsSupplyState aREP "index") (10822464444875983176893501598723703991037)
+Assert Equal (Comptroller ArsSupplyState cYFI "index") (1e36)
+
+-- Verify old ARS speed storage deleted
+Assert Equal (Comptroller ArsSpeed cETH) (0)
+Assert Equal (Comptroller ArsSpeed aUSDC) (0)
+Assert Equal (Comptroller ArsSpeed aDAI) (0)
+Assert Equal (Comptroller ArsSpeed aWBTC) (0)
+Assert Equal (Comptroller ArsSpeed aWBTC2) (0)
+Assert Equal (Comptroller ArsSpeed cUSDT) (0)
+Assert Equal (Comptroller ArsSpeed aARS) (0)
+Assert Equal (Comptroller ArsSpeed cUNI) (0)
+Assert Equal (Comptroller ArsSpeed cLINK) (0)
+Assert Equal (Comptroller ArsSpeed aZRX) (0)
+Assert Equal (Comptroller ArsSpeed cTUSD) (0)
+Assert Equal (Comptroller ArsSpeed aBAT) (0)
+Assert Equal (Comptroller ArsSpeed cAAVE) (0)
+Assert Equal (Comptroller ArsSpeed aSAI) (0)
+Assert Equal (Comptroller ArsSpeed cSUSHI) (0)
+Assert Equal (Comptroller ArsSpeed cMKR) (0)
+Assert Equal (Comptroller ArsSpeed aREP) (0)
+Assert Equal (Comptroller ArsSpeed cYFI) (0)
+
+-- Verify ARS supply speeds equal the previous speeds
+Assert Equal (Comptroller ArsSupplySpeed cETH) (10750000000000000)
+Assert Equal (Comptroller ArsSupplySpeed aUSDC) (67000000000000000)
+Assert Equal (Comptroller ArsSupplySpeed aDAI) (67000000000000000)
+Assert Equal (Comptroller ArsSupplySpeed aWBTC) (0)
+Assert Equal (Comptroller ArsSupplySpeed aWBTC2) (10750000000000000)
+Assert Equal (Comptroller ArsSupplySpeed cUSDT) (9650000000000000)
+Assert Equal (Comptroller ArsSupplySpeed aARS) (5000000000000000)
+Assert Equal (Comptroller ArsSupplySpeed cUNI) (1462500000000000)
+Assert Equal (Comptroller ArsSupplySpeed cLINK) (1462500000000000)
+Assert Equal (Comptroller ArsSupplySpeed aZRX) (1462500000000000)
+Assert Equal (Comptroller ArsSupplySpeed cTUSD) (0)
+Assert Equal (Comptroller ArsSupplySpeed aBAT) (1462500000000000)
+Assert Equal (Comptroller ArsSupplySpeed cAAVE) (0)
+Assert Equal (Comptroller ArsSupplySpeed aSAI) (0)
+Assert Equal (Comptroller ArsSupplySpeed cSUSHI) (0)
+Assert Equal (Comptroller ArsSupplySpeed cMKR) (0)
+Assert Equal (Comptroller ArsSupplySpeed aREP) (0)
+Assert Equal (Comptroller ArsSupplySpeed cYFI) (0)
+
+-- Verify ARS borrow speeds equal the previous speeds
+Assert Equal (Comptroller ArsBorrowSpeed cETH) (10750000000000000)
+Assert Equal (Comptroller ArsBorrowSpeed aUSDC) (67000000000000000)
+Assert Equal (Comptroller ArsBorrowSpeed aDAI) (67000000000000000)
+Assert Equal (Comptroller ArsBorrowSpeed aWBTC) (0)
+Assert Equal (Comptroller ArsBorrowSpeed aWBTC2) (10750000000000000)
+Assert Equal (Comptroller ArsBorrowSpeed cUSDT) (9650000000000000)
+Assert Equal (Comptroller ArsBorrowSpeed aARS) (5000000000000000)
+Assert Equal (Comptroller ArsBorrowSpeed cUNI) (1462500000000000)
+Assert Equal (Comptroller ArsBorrowSpeed cLINK) (1462500000000000)
+Assert Equal (Comptroller ArsBorrowSpeed aZRX) (1462500000000000)
+Assert Equal (Comptroller ArsBorrowSpeed cTUSD) (0)
+Assert Equal (Comptroller ArsBorrowSpeed aBAT) (1462500000000000)
+Assert Equal (Comptroller ArsBorrowSpeed cAAVE) (0)
+Assert Equal (Comptroller ArsBorrowSpeed aSAI) (0)
+Assert Equal (Comptroller ArsBorrowSpeed cSUSHI) (0)
+Assert Equal (Comptroller ArsBorrowSpeed cMKR) (0)
+Assert Equal (Comptroller ArsBorrowSpeed aREP) (0)
+Assert Equal (Comptroller ArsBorrowSpeed cYFI) (0)
+
+Print "Upgrade ok"
+Print "Verifying exploits/bugs are patched"
+
+-- Mint test
+From TokenHolder (Erc20 MKR Approve (Address cMKR) 1000e18)
+From TokenHolder (AToken cMKR Mint 1000e18)
+
+Comptroller ClaimArs TokenHolder
+Assert Equal (Erc20 ARS TokenBalance TokenHolder) (0)
+
+-- Fast forward to make us accrue a ton of interest (1 year)
+MineBlock
+AdvanceBlocks 2354250
+
+-- Propose ARS speed update
+From ArsHolder (GovernorBravo GovernorBravo Propose "Exploit rewards bug 1" [(Address Comptroller)] [0] ["_setArsSpeeds(address[],uint256[],uint256[])"] [[[(address cMKR)] [1] [1]]])
+
+-- Fast forward, vote, queue, execute
+MineBlock
+AdvanceBlocks 14000
+From ArsHolder (GovernorBravo GovernorBravo Proposal LastProposal Vote For)
+AdvanceBlocks 20000
+GovernorBravo GovernorBravo Proposal LastProposal Queue
+IncreaseTime 604910
+GovernorBravo GovernorBravo Proposal LastProposal Execute
+
+-- Ensure accrue interest
+AToken cMKR AccrueInterest
+
+From TokenHolder (Erc20 MKR Approve (Address cMKR) 1000e18)
+From TokenHolder (AToken cMKR Mint 1000e18)
+
+Comptroller ClaimArs TokenHolder
+Assert Equal (Erc20 ARS TokenBalance TokenHolder) (2)
+
+-- Propose ARS speed update
+From ArsHolder (GovernorBravo GovernorBravo Propose "Exploit rewards bug 2" [(Address Comptroller)] [0] ["_setArsSpeeds(address[],uint256[],uint256[])"] [[[(address cMKR)] [0] [0]]])
+
+-- Fast forward, vote, queue, execute
+MineBlock
+AdvanceBlocks 14000
+From ArsHolder (GovernorBravo GovernorBravo Proposal LastProposal Vote For)
+AdvanceBlocks 20000
+GovernorBravo GovernorBravo Proposal LastProposal Queue
+IncreaseTime 604910
+GovernorBravo GovernorBravo Proposal LastProposal Execute
+
+AToken cMKR AccrueInterest
+Comptroller ClaimArs TokenHolder
+Assert Equal (Erc20 ARS TokenBalance TokenHolder) (32056)
+
+-- Fast forward to make us accrue a ton of interest - we shouldn't as the rate is 0 (1 year)
+MineBlock
+AdvanceBlocks 2354250
+
+-- Propose ARS speed update
+From ArsHolder (GovernorBravo GovernorBravo Propose "Exploit rewards bug 3" [(Address Comptroller)] [0] ["_setArsSpeeds(address[],uint256[],uint256[])"] [[[(address cMKR)] [1] [1]]])
+
+-- Fast forward, vote, queue, execute
+MineBlock
+AdvanceBlocks 14000
+From ArsHolder (GovernorBravo GovernorBravo Proposal LastProposal Vote For)
+AdvanceBlocks 20000
+GovernorBravo GovernorBravo Proposal LastProposal Queue
+IncreaseTime 604910
+GovernorBravo GovernorBravo Proposal LastProposal Execute
+
+-- Ensure accrue interest
+AToken cMKR AccrueInterest
+
+From TokenHolder (Erc20 MKR Approve (Address cMKR) 1000e18)
+From TokenHolder (AToken cMKR Mint 1000e18)
+
+Comptroller ClaimArs TokenHolder
+Assert Equal (Erc20 ARS TokenBalance TokenHolder) (32058)
+
+Print "ARS rewards bug fix passed"

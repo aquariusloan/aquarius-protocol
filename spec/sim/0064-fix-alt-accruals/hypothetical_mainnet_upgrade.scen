@@ -1,0 +1,109 @@
+#!/usr/bin/env -S yarn repl -s
+
+PrintTransactionLogs
+
+-- Token holder addresses for mocking
+Alias ArsHolder "0x7587caefc8096f5f40acb83a09df031a018c66ec"
+Alias CUSDCHolder "0xF977814e90dA44bFA03b6295A0616a897441aceC" -- Binance 8
+Alias DaiHolder "0x5f65f7b609678448494De4C87521CdF6cEf1e932" -- Gemini 4
+
+Alias Timelock "0x6d903f6003cca6255D85CcA4D3B5E5146dC33925"
+
+-- Fork the block prior to proposal 62 executing
+Web3Fork "https://mainnet-eth.aquarius.loan/@13322797" (ArsHolder CUSDCHolder DaiHolder Timelock)
+UseConfigs mainnet
+
+-- Disable USDC ARS rewards so that these rewards won't mess with our results
+Send Timelock 1e18
+From Timelock (Comptroller SetArsSpeed aUSDC 0)
+
+-- Send USDC from CUSDCHolder to other accounts
+From CUSDCHolder (Erc20 USDC Transfer Geoff 1000000e6)
+From CUSDCHolder (Erc20 USDC Transfer Torrey 1000000e6)
+From CUSDCHolder (Erc20 USDC Transfer Coburn 1000000e6)
+From CUSDCHolder (Erc20 USDC Transfer Jared 1000000e6)
+
+-- Send DAI from DaiHolder to other accounts
+From DaiHolder (Erc20 DAI Transfer Coburn 1000000e18)
+From DaiHolder (Erc20 DAI Transfer Jared 1000000e18)
+
+-- Pre Proposal 62: Deposit collateral and borrow SUSHI
+From Geoff (Erc20 USDC Approve (Address aUSDC) 1000000e6)
+From Geoff (AToken aUSDC Mint 1000000e6)
+From Geoff (Comptroller EnterMarkets (aUSDC))
+From Geoff (AToken cSUSHI Borrow 1000e18)
+
+From Torrey (Erc20 USDC Approve (Address aUSDC) 1000000e6)
+From Torrey (AToken aUSDC Mint 1000000e6)
+From Torrey (Comptroller EnterMarkets (aUSDC))
+From Torrey (AToken cSUSHI Borrow 1000e18)
+
+-- Execute proposal 62
+GovernorBravo GovernorBravo Proposal LastProposal Execute
+MineBlock
+
+-- Claim ARS for Geoff
+Comptroller ClaimArs Geoff
+
+-- Check Geoff ARS rewards - invalid accrual & ARS sent
+Assert Equal (Erc20 ARS TokenBalance Geoff) (988792275103122749560) -- Huge amount (988 ARS) -> Bug
+Assert Equal (Comptroller ArsAccrued Geoff) (0)
+
+-- Cause Torrey to accrue ARS without claiming
+From Torrey (AToken cSUSHI Borrow 1e18) -- Causes ARS to be distributed but not claimed
+
+-- Deploy latest Comptroller
+ComptrollerImpl Deploy Standard NewComptroller
+
+-- Delegate and propose update (containing bug fix)
+From ArsHolder (Ars Delegate ArsHolder)
+From ArsHolder (GovernorBravo GovernorBravo Propose "Upgrade Comptroller" [(Address Unitroller) (Address NewComptroller)] [0 0] ["_setPendingImplementation(address)" "_become(address)"] [[(Address NewComptroller)] [(Address Unitroller)]])
+
+-- Fast forward, vote, queue, execute
+MineBlock
+AdvanceBlocks 14000
+From ArsHolder (GovernorBravo GovernorBravo Proposal LastProposal Vote For)
+AdvanceBlocks 20000
+GovernorBravo GovernorBravo Proposal LastProposal Queue
+IncreaseTime 604910
+GovernorBravo GovernorBravo Proposal LastProposal Execute
+MineBlock
+
+-- Claim ARS for Torrey
+Comptroller ClaimArs Torrey
+
+-- Check Torrey ARS balance changes - invalid accrual & ARS not sent
+Assert Equal (Erc20 ARS TokenBalance Torrey) (0)
+Assert Equal (Comptroller ArsAccrued Torrey) (988792086947769887785) -- Huge amount (988 ARS) -> Bug
+
+-- Post bug fix: Deposit collateral (DAI) and borrow SUSHI - block ARS sending
+From Coburn (Erc20 DAI Approve (Address aDAI) 1000000e18)
+From Coburn (AToken aDAI Mint 1000000e18)
+From Coburn (Comptroller EnterMarkets (aDAI))
+From Coburn (AToken cSUSHI Borrow 1000e18)
+
+-- Post bug fix: Deposit collateral (DAI) and borrow BAT - don't block ARS sending
+From Jared (Erc20 DAI Approve (Address aDAI) 1000000e18)
+From Jared (AToken aDAI Mint 1000000e18)
+From Jared (Comptroller EnterMarkets (aDAI))
+From Jared (AToken aBAT Borrow 1000e18)
+
+-- Accrue rewards (if any)
+MineBlock
+AdvanceBlocks 14000
+
+-- Claim ARS for Coburn
+Comptroller ClaimArsInMarkets Coburn (aDAI cSUSHI)
+
+-- Claim ARS for Jared
+Comptroller ClaimArsInMarkets Jared (aDAI aBAT)
+
+-- Check Coburn ARS balance changes - valid accrual & ARS not sent (claim in affected market)
+Assert Equal (Erc20 ARS TokenBalance Coburn) (0)
+Assert Equal (Comptroller ArsAccrued Coburn) (211455443766873733) -- 0.21 ARS accrued
+
+-- Check Jared ARS balance changes - valid accrual & ARS sent (no claim in affected market)
+Assert Equal (Erc20 ARS TokenBalance Jared) (212379370589809042) -- 0.21 ARS claimed
+Assert Equal (Comptroller ArsAccrued Jared) (0)
+
+Print "Done"

@@ -1,0 +1,300 @@
+
+Test "Check Name"
+    Ars Deploy Geoff
+    Assert Equal (Ars Name) "Aquarius"
+
+Test "Check Symbol"
+    Ars Deploy Geoff
+    Assert Equal (Ars Symbol) "ARS"
+
+Test "Check Decimals"
+    Ars Deploy Geoff
+    Assert Equal (Ars Decimals) 18
+
+Test "Check Total Supply"
+    Ars Deploy Geoff
+    Assert Equal (Ars TotalSupply) 10000000e18
+
+Test "Check account receives Total Supply after deploy and emits Transfer event"
+    Ars Deploy Geoff
+    Assert Equal (Ars TokenBalance Geoff) 10000000e18
+    Assert Log Transfer (from (Address Zero)) (to (Address Geoff)) (amount "10000000000000000000000000")
+
+Test "Check approve sets correct approval and emits Approval event"
+    Ars Deploy Geoff
+    From Geoff (Ars Approve Jared 10)
+    Assert Equal (Ars Allowance Geoff Jared) 10
+    Assert Log Approval (owner (Address Geoff)) (spender (Address Jared)) (amount "10")
+
+Test "Check approve with bad allowance reverts"
+    Ars Deploy Geoff
+    AllowFailures
+    From Geoff (Ars Approve Jared 1e70)
+    Assert Revert "revert Ars::approve: amount exceeds 96 bits"
+
+Test "Check transfer updates balances correctly, emits Transfer event, and returns true"
+    Ars Deploy Geoff
+    From Geoff (Ars Transfer Jared 10)
+    Assert Equal (Ars TokenBalance Geoff) 9999999999999999999999990
+    Assert Equal (Ars TokenBalance Jared) 10
+    Assert Log Transfer (from (Address Geoff)) (to (Address Jared)) (amount "10")
+
+Test "Check self-transfer updates balances correctly, emits Transfer event, and returns true"
+    Ars Deploy Geoff
+    Expect Changes (Ars VotesLength Geoff) Zero
+    Expect Changes (Ars TokenBalance Geoff) Zero
+    From Geoff (Ars Transfer Geoff 10)
+    Assert Log Transfer (from (Address Geoff)) (to (Address Geoff)) (amount "10")
+    Expect Changes (Ars VotesLength Geoff) Zero
+    Expect Changes (Ars TokenBalance Geoff) Zero
+    From Geoff (Ars Transfer Geoff 0)
+    Assert Log Transfer (from (Address Geoff)) (to (Address Geoff)) (amount "0")
+
+Test "Check transferFrom with unlimited allowance updates balances correctly, emits Transfer event, and returns true"
+    Ars Deploy Geoff
+    From Geoff (Ars Approve Jared UInt256Max)
+    From Jared (Ars TransferFrom Geoff Jared 10)
+    Assert Equal (Ars TokenBalance Geoff) 9999999999999999999999990
+    Assert Equal (Ars TokenBalance Jared) 10
+    Assert Equal (Ars Allowance Geoff Jared) UInt96Max
+    Assert Log Transfer (from (Address Geoff)) (to (Address Jared)) (amount "10")
+
+Test "Check transferFrom with unlimited allowance updates balances correctly, emits Transfer event, and returns true"
+    Ars Deploy Geoff
+    From Geoff (Ars Approve Jared UInt96Max)
+    From Jared (Ars TransferFrom Geoff Jared 10)
+    Assert Equal (Ars TokenBalance Geoff) 9999999999999999999999990
+    Assert Equal (Ars TokenBalance Jared) 10
+    Assert Equal (Ars Allowance Geoff Jared) UInt96Max
+    Assert Log Transfer (from (Address Geoff)) (to (Address Jared)) (amount "10")
+
+Test "Check transferFrom with allowance updates balances correctly, emits Transfer event, and returns true"
+    Ars Deploy Geoff
+    From Geoff (Ars Approve Jared 10)
+    From Jared (Ars TransferFrom Geoff Jared 9)
+    Assert Equal (Ars TokenBalance Geoff) 9999999999999999999999991
+    Assert Equal (Ars TokenBalance Jared) 9
+    Assert Equal (Ars Allowance Geoff Jared) 1
+    Assert Log Transfer (from (Address Geoff)) (to (Address Jared)) (amount "9")
+    Assert Log Approval (owner (Address Geoff)) (spender (Address Jared)) (amount "1")
+
+Test "Check transferFrom reverts with not sufficient allowance"
+    Ars Deploy Geoff
+    From Geoff (Ars Approve Jared 10)
+    AllowFailures
+    From Jared (Ars TransferFrom Geoff Jared 11)
+    Assert Revert "revert Ars::transferFrom: transfer amount exceeds spender allowance"
+
+Test "Check transfer reverts when transferring too much"
+    Ars Deploy Geoff
+    AllowFailures
+    From Geoff (Ars Transfer Jared 10000001e18)
+    Assert Revert "revert Ars::_transferTokens: transfer amount exceeds balance"
+
+Test "Check transfer reverts when transferring to address 0"
+    Ars Deploy Geoff
+    AllowFailures
+    From Geoff (Ars Transfer (Address Zero) 10000000e18)
+    Assert Revert "revert Ars::_transferTokens: cannot transfer to the zero address"
+
+Test "Delegate with zero balance doesn't change votes checkpoints"
+    Ars Deploy Geoff
+    Assert Equal (Ars VotesLength Geoff) 0
+    From Jared (Ars Delegate Geoff)
+    Assert Equal (Ars VotesLength Geoff) 0
+    Assert Log DelegateChanged (delegator (Address Jared)) (fromDelegate (Address Zero)) (toDelegate (Address Geoff))
+
+Test "Delegate from address(0) to account with zero checkpoints"
+    Ars Deploy Geoff
+    From Geoff (Ars Transfer Jared 10)
+    Assert Equal (Ars VotesLength Geoff) 0
+    From Jared (Ars Delegate Geoff)
+    Assert Equal (Ars VotesLength Geoff) 1
+    Assert Equal (Ars GetCurrentVotes Geoff) 10
+    Assert Equal (Ars GetCurrentVotesBlock Geoff) LastBlock
+    Assert Equal (Ars VotesLength Zero) 0
+    Assert Log DelegateChanged (delegator (Address Jared)) (fromDelegate (Address Zero)) (toDelegate (Address Geoff))
+    Assert Log DelegateVotesChanged (delegate (Address Geoff)) (previousBalance "0") (newBalance "10")
+
+Test "Delegate from address(0) to account with existing checkpoints"
+    Ars Deploy Geoff
+    From Geoff (Ars Transfer Jared 10)
+    From Geoff (Ars Transfer Torrey 14)
+    Assert Equal (Ars VotesLength Geoff) 0
+    From Jared (Ars Delegate Geoff)
+    Assert Equal (Ars VotesLength Geoff) 1
+    Assert Equal (Ars GetCurrentVotes Geoff) 10
+    Assert Equal (Ars GetCurrentVotesBlock Geoff) LastBlock
+    Assert Log DelegateChanged (delegator (Address Jared)) (fromDelegate (Address Zero)) (toDelegate (Address Geoff))
+    Assert Log DelegateVotesChanged (delegate (Address Geoff)) (previousBalance "0") (newBalance "10")
+    From Torrey (Ars Delegate Geoff)
+    Assert Equal (Ars VotesLength Geoff) 2
+    Assert Equal (Ars GetCurrentVotes Geoff) 24
+    Assert Equal (Ars GetCurrentVotesBlock Geoff) LastBlock
+    Assert Equal (Ars VotesLength Zero) 0
+    Assert Log DelegateChanged (delegator (Address Torrey)) (fromDelegate (Address Zero)) (toDelegate (Address Geoff))
+    Assert Log DelegateVotesChanged (delegate (Address Geoff)) (previousBalance "10") (newBalance "24")
+
+Test "Delegate to address(0)"
+    Ars Deploy Geoff
+    From Geoff (Ars Transfer Jared 10)
+    From Geoff (Ars Transfer Torrey 14)
+    Assert Equal (Ars VotesLength Geoff) 0
+    From Jared (Ars Delegate Geoff)
+    Assert Equal (Ars VotesLength Geoff) 1
+    Assert Equal (Ars GetCurrentVotes Geoff) 10
+    Assert Equal (Ars GetCurrentVotesBlock Geoff) LastBlock
+    Assert Log DelegateChanged (delegator (Address Jared)) (fromDelegate (Address Zero)) (toDelegate (Address Geoff))
+    Assert Log DelegateVotesChanged (delegate (Address Geoff)) (previousBalance "0") (newBalance "10")
+    From Torrey (Ars Delegate Geoff)
+    Assert Equal (Ars VotesLength Geoff) 2
+    Assert Equal (Ars GetCurrentVotes Geoff) 24
+    Assert Equal (Ars GetCurrentVotesBlock Geoff) LastBlock
+    Assert Log DelegateChanged (delegator (Address Torrey)) (fromDelegate (Address Zero)) (toDelegate (Address Geoff))
+    Assert Log DelegateVotesChanged (delegate (Address Geoff)) (previousBalance "10") (newBalance "24")
+    From Torrey (Ars Delegate Zero)
+    Assert Equal (Ars VotesLength Geoff) 3
+    Assert Equal (Ars GetCurrentVotes Geoff) 10
+    Assert Equal (Ars GetCurrentVotesBlock Geoff) LastBlock
+    Assert Log DelegateChanged (delegator (Address Torrey)) (fromDelegate (Address Geoff)) (toDelegate (Address Zero))
+    Assert Log DelegateVotesChanged (delegate (Address Geoff)) (previousBalance "24") (newBalance "10")
+    Assert Equal (Ars VotesLength Zero) 0
+
+Test "Delegate from one account to another account with zero checkpoints"
+    Ars Deploy Geoff
+    From Geoff (Ars Transfer Jared 10)
+    From Geoff (Ars Transfer Torrey 14)
+    Assert Equal (Ars VotesLength Geoff) 0
+    From Jared (Ars Delegate Geoff)
+    Assert Equal (Ars VotesLength Geoff) 1
+    Assert Equal (Ars GetCurrentVotes Geoff) 10
+    Assert Equal (Ars GetCurrentVotesBlock Geoff) LastBlock
+    Assert Log DelegateChanged (delegator (Address Jared)) (fromDelegate (Address Zero)) (toDelegate (Address Geoff))
+    Assert Log DelegateVotesChanged (delegate (Address Geoff)) (previousBalance "0") (newBalance "10")
+    From Torrey (Ars Delegate Geoff)
+    Assert Equal (Ars VotesLength Geoff) 2
+    Assert Equal (Ars GetCurrentVotes Geoff) 24
+    Assert Equal (Ars GetCurrentVotesBlock Geoff) LastBlock
+    Assert Equal (Ars VotesLength Coburn) 0
+    Assert Log DelegateChanged (delegator (Address Torrey)) (fromDelegate (Address Zero)) (toDelegate (Address Geoff))
+    Assert Log DelegateVotesChanged (delegate (Address Geoff)) (previousBalance "10") (newBalance "24")
+    From Torrey (Ars Delegate Coburn)
+    Assert Equal (Ars VotesLength Coburn) 1
+    Assert Equal (Ars GetCurrentVotes Coburn) 14
+    Assert Equal (Ars GetCurrentVotesBlock Coburn) LastBlock
+    Assert Equal (Ars VotesLength Geoff) 3
+    Assert Equal (Ars GetCurrentVotes Geoff) 10
+    Assert Equal (Ars GetCurrentVotesBlock Geoff) LastBlock
+    Assert Log DelegateChanged (delegator (Address Torrey)) (fromDelegate (Address Geoff)) (toDelegate (Address Coburn))
+    Assert Log DelegateVotesChanged (delegate (Address Geoff)) (previousBalance "24") (newBalance "10")
+    Assert Log DelegateVotesChanged (delegate (Address Coburn)) (previousBalance "0") (newBalance "14")
+
+Test "Delegate from one account to another account with multiple checkpoints"
+    Ars Deploy Geoff
+    From Geoff (Ars Transfer Jared 10)
+    From Geoff (Ars Transfer Torrey 14)
+    From Geoff (Ars Transfer Coburn 2)
+    Assert Equal (Ars VotesLength Geoff) 0
+    From Jared (Ars Delegate Geoff)
+    Assert Equal (Ars VotesLength Geoff) 1
+    Assert Equal (Ars GetCurrentVotes Geoff) 10
+    Assert Equal (Ars GetCurrentVotesBlock Geoff) LastBlock
+    Assert Log DelegateChanged (delegator (Address Jared)) (fromDelegate (Address Zero)) (toDelegate (Address Geoff))
+    Assert Log DelegateVotesChanged (delegate (Address Geoff)) (previousBalance "0") (newBalance "10")
+    From Torrey (Ars Delegate Geoff)
+    Assert Equal (Ars VotesLength Geoff) 2
+    Assert Equal (Ars GetCurrentVotes Geoff) 24
+    Assert Equal (Ars GetCurrentVotesBlock Geoff) LastBlock
+    Assert Equal (Ars VotesLength Coburn) 0
+    Assert Log DelegateChanged (delegator (Address Torrey)) (fromDelegate (Address Zero)) (toDelegate (Address Geoff))
+    Assert Log DelegateVotesChanged (delegate (Address Geoff)) (previousBalance "10") (newBalance "24")
+    From Coburn (Ars Delegate Coburn)
+    Assert Equal (Ars VotesLength Coburn) 1
+    Assert Equal (Ars GetCurrentVotes Coburn) 2
+    Assert Equal (Ars GetCurrentVotesBlock Coburn) LastBlock
+    Assert Log DelegateChanged (delegator (Address Coburn)) (fromDelegate (Address Zero)) (toDelegate (Address Coburn))
+    Assert Log DelegateVotesChanged (delegate (Address Coburn)) (previousBalance "0") (newBalance "2")
+    From Torrey (Ars Delegate Coburn)
+    Assert Equal (Ars VotesLength Coburn) 2
+    Assert Equal (Ars GetCurrentVotes Coburn) 16
+    Assert Equal (Ars GetCurrentVotesBlock Coburn) LastBlock
+    Assert Equal (Ars VotesLength Geoff) 3
+    Assert Equal (Ars GetCurrentVotes Geoff) 10
+    Assert Equal (Ars GetCurrentVotesBlock Geoff) LastBlock
+    Assert Log DelegateChanged (delegator (Address Torrey)) (fromDelegate (Address Geoff)) (toDelegate (Address Coburn))
+    Assert Log DelegateVotesChanged (delegate (Address Geoff)) (previousBalance "24") (newBalance "10")
+    Assert Log DelegateVotesChanged (delegate (Address Coburn)) (previousBalance "2") (newBalance "16")
+
+Test "Vote checkpoints don't change on transfer when to and from accounts delegate to same account"
+    Ars Deploy Geoff
+    From Geoff (Ars Transfer Jared 10)
+    From Geoff (Ars Transfer Torrey 14)
+    Assert Equal (Ars VotesLength Geoff) 0
+    From Jared (Ars Delegate Geoff)
+    Assert Equal (Ars VotesLength Geoff) 1
+    Assert Equal (Ars GetCurrentVotes Geoff) 10
+    Assert Equal (Ars GetCurrentVotesBlock Geoff) LastBlock
+    Assert Log DelegateChanged (delegator (Address Jared)) (fromDelegate (Address Zero)) (toDelegate (Address Geoff))
+    Assert Log DelegateVotesChanged (delegate (Address Geoff)) (previousBalance "0") (newBalance "10")
+    From Torrey (Ars Delegate Geoff)
+    Assert Equal (Ars VotesLength Geoff) 2
+    Assert Equal (Ars GetCurrentVotes Geoff) 24
+    Assert Equal (Ars GetCurrentVotesBlock Geoff) LastBlock
+    Assert Log DelegateChanged (delegator (Address Torrey)) (fromDelegate (Address Zero)) (toDelegate (Address Geoff))
+    Assert Log DelegateVotesChanged (delegate (Address Geoff)) (previousBalance "10") (newBalance "24")
+    Invariant Static (Ars VotesLength Geoff)
+    Invariant Static (Ars GetCurrentVotes Geoff)
+    Invariant Static (Ars GetCurrentVotesBlock Geoff)
+    From Torrey (Ars Transfer Jared 14)
+
+Test "Only one checkpoint is added per block for multiple increased balance updates"
+    Ars Deploy Scenario Geoff
+    Assert Equal (Ars VotesLength Geoff) 0
+    Assert Equal (Ars GetCurrentVotes Geoff) 0
+    From Jared (Ars Delegate Geoff)
+    Assert Log DelegateChanged (delegator (Address Jared)) (fromDelegate (Address Zero)) (toDelegate (Address Geoff))
+    From Torrey (Ars Delegate Geoff)
+    Assert Log DelegateChanged (delegator (Address Torrey)) (fromDelegate (Address Zero)) (toDelegate (Address Geoff))
+    From Geoff (Ars TransferScenario (Jared Torrey) 10)
+    Assert Equal (Ars VotesLength Geoff) 1
+    Assert Equal (Ars GetCurrentVotes Geoff) 20
+    Assert Equal (Ars GetCurrentVotesBlock Geoff) LastBlock
+    Assert Equal (Ars VotesLength Zero) 0
+    Assert Log DelegateVotesChanged (delegate (Address Geoff)) (previousBalance "0") (newBalance "10")
+    Assert Log DelegateVotesChanged (delegate (Address Geoff)) (previousBalance "10") (newBalance "20")
+
+Test "Only one checkpoint is added per block for multiple decreased balance updates"
+    Ars Deploy Scenario Geoff
+    From Geoff (Ars Transfer Jared 10)
+    From Geoff (Ars Transfer Torrey 10)
+    Assert Equal (Ars VotesLength Geoff) 0
+    Assert Equal (Ars GetCurrentVotes Geoff) 0
+    From Jared (Ars Delegate Geoff)
+    Assert Equal (Ars VotesLength Geoff) 1
+    Assert Equal (Ars GetCurrentVotes Geoff) 10
+    Assert Equal (Ars GetCurrentVotesBlock Geoff) LastBlock
+    Assert Log DelegateChanged (delegator (Address Jared)) (fromDelegate (Address Zero)) (toDelegate (Address Geoff))
+    Assert Log DelegateVotesChanged (delegate (Address Geoff)) (previousBalance "0") (newBalance "10")
+    From Torrey (Ars Delegate Geoff)
+    Assert Equal (Ars VotesLength Geoff) 2
+    Assert Equal (Ars GetCurrentVotes Geoff) 20
+    Assert Equal (Ars GetCurrentVotesBlock Geoff) LastBlock
+    Assert Log DelegateChanged (delegator (Address Torrey)) (fromDelegate (Address Zero)) (toDelegate (Address Geoff))
+    Assert Log DelegateVotesChanged (delegate (Address Geoff)) (previousBalance "10") (newBalance "20")
+    From Jared (Ars Approve Geoff 10)
+    From Torrey (Ars Approve Geoff 10)
+    From Geoff (Ars TransferFromScenario (Jared Torrey) 10)
+    Assert Equal (Ars VotesLength Geoff) 3
+    Assert Equal (Ars GetCurrentVotes Geoff) 0
+    Assert Equal (Ars GetCurrentVotesBlock Geoff) LastBlock
+    Assert Equal (Ars VotesLength Zero) 0
+    Assert Log DelegateVotesChanged (delegate (Address Geoff)) (previousBalance "20") (newBalance "10")
+    Assert Log DelegateVotesChanged (delegate (Address Geoff)) (previousBalance "10") (newBalance "0")
+
+Test "Check transfer reverts when block number exceeds 32 bits"
+    Ars Deploy Geoff
+    From Jared (Ars Delegate Geoff)
+    AllowFailures
+    SetBlockNumber 5000000000
+    From Geoff (Ars Transfer Jared 10000000e18)
+    Assert Revert "revert Ars::_writeCheckpoint: block number exceeds 32 bits"

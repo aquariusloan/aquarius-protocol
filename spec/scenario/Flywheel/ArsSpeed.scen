@@ -1,0 +1,231 @@
+-- Tests setting ARS (borrow/supply) speeds work properly
+-- Ensures setting various ARS speeds doesn't break the ARS distribution mechanisms
+-- Note: Ensuring the right amounts of ARS distributed is out of scope of these scenario tests (this is in the scope of flywheel scenario tests)
+
+Macro FlywheelComptroller price=1.0 arsInitAmount=5000000e18
+    Unitroller Deploy
+    PriceOracle Deploy Fixed price
+    PriceOracleProxy Deploy Admin (PriceOracle Address) (Address Zero) (Address Zero) (Address Zero) (Address Zero) (Address Zero)
+    -- Deploy Comptroller
+    ComptrollerImpl Deploy Scenario ComptrollerScen
+    Unitroller SetPendingImpl ComptrollerScen
+    ComptrollerImpl ComptrollerScen Become
+    -- Configure Comptroller
+    Comptroller SetPriceOracle (PriceOracleProxy Address)
+    Comptroller SetCloseFactor 0.5
+    Comptroller LiquidationIncentive 1.1
+    -- Add markets
+    NewAToken ZRX aZRX
+    NewAToken BAT aBAT
+    Support aZRX collateralFactor:0.5
+    Support aBAT collateralFactor:0.5
+    -- Setup ARS token
+    Erc20 Deploy Standard ARS "ARS Token" 18
+    Give (Address Comptroller) arsInitAmount ARS
+    Comptroller Send "setArsAddress(address)" (Address ARS)
+
+Macro InitUsage
+    Prep Geoff 100e18 ZRX aZRX
+    Mint Geoff 50e18 aZRX--tokenbalance = 50e18 / 2e9 = 2.5e10
+    Prep Coburn Some BAT aBAT
+    Mint Coburn 6e18 aBAT--tokenbalance = 6e18 / 2e9 = 3e9
+    EnterMarkets Coburn aBAT
+    Borrow Coburn 1e18 aZRX
+
+Macro UseEnvironment1
+    FlywheelComptroller
+    InitUsage
+
+Macro ClaimArsForAll
+    Comptroller ClaimArs Geoff
+    Comptroller ClaimArs Coburn
+
+Macro VerifyArsSpeeds aToken supplySpeed borrowSpeed
+    Assert Equal (Comptroller ArsSupplySpeed aToken) supplySpeed
+    Assert Equal (Comptroller ArsBorrowSpeed aToken) borrowSpeed
+
+Macro SetAndVerifyArsSpeeds aToken supplySpeed borrowSpeed
+    Comptroller SetArsSpeeds (aToken) ((Number supplySpeed)) ((Number borrowSpeed))
+    VerifyArsSpeeds aToken supplySpeed borrowSpeed
+    MineBlock -- Ensures we accrue ARS
+    ClaimArsForAll -- Ensures setting the ARS speeds didn't break the distribution mechanisms
+
+Test "ARS supply speed can be set"
+    UseEnvironment1
+    SetAndVerifyArsSpeeds aZRX 2e18 0e18
+
+Test "ARS supply speed can be set then unset"
+    UseEnvironment1
+    SetAndVerifyArsSpeeds aZRX 2e18 0e18
+    SetAndVerifyArsSpeeds aZRX 0e18 0e18
+
+Test "ARS supply speed can be set then set again"
+    UseEnvironment1
+    SetAndVerifyArsSpeeds aZRX 2e18 0e18
+    SetAndVerifyArsSpeeds aZRX 0e18 0e18
+    SetAndVerifyArsSpeeds aZRX 2e18 0e18
+
+Test "ARS supply speed can be set w/ borrow speed"
+    UseEnvironment1
+    SetAndVerifyArsSpeeds aZRX 2e18 1e18
+
+Test "ARS supply speed can be set then unset w/ borrow speed"
+    UseEnvironment1
+    SetAndVerifyArsSpeeds aZRX 2e18 1e18
+    SetAndVerifyArsSpeeds aZRX 0e18 1e18
+
+Test "ARS supply speed can be set then set, unset, and set again w/ borrow speed"
+    UseEnvironment1
+    SetAndVerifyArsSpeeds aZRX 2e18 1e18
+    SetAndVerifyArsSpeeds aZRX 0e18 1e18
+    SetAndVerifyArsSpeeds aZRX 2e18 1e18
+
+Test "ARS borrow speed can be set"
+    UseEnvironment1
+    SetAndVerifyArsSpeeds aZRX 0e18 2e18
+
+Test "ARS borrow speed can be set then unset"
+    UseEnvironment1
+    SetAndVerifyArsSpeeds aZRX 0e18 2e18
+    SetAndVerifyArsSpeeds aZRX 0e18 0e18
+
+Test "ARS borrow speed can be set then set again"
+    UseEnvironment1
+    SetAndVerifyArsSpeeds aZRX 0e18 2e18
+    SetAndVerifyArsSpeeds aZRX 0e18 0e18
+    SetAndVerifyArsSpeeds aZRX 0e18 2e18
+
+Test "ARS borrow speed can be set w/ supply speed"
+    UseEnvironment1
+    SetAndVerifyArsSpeeds aZRX 1e18 2e18
+
+Test "ARS borrow speed can be set then unset w/ supply speed"
+    UseEnvironment1
+    SetAndVerifyArsSpeeds aZRX 1e18 2e18
+    SetAndVerifyArsSpeeds aZRX 1e18 0e18
+
+Test "ARS borrow speed can be set then set, unset, and set again w/ supply speed"
+    UseEnvironment1
+    SetAndVerifyArsSpeeds aZRX 1e18 2e18
+    SetAndVerifyArsSpeeds aZRX 1e18 0e18
+    SetAndVerifyArsSpeeds aZRX 1e18 2e18
+
+Test "Many different ARS supply speeds can be set"
+    UseEnvironment1
+    SetAndVerifyArsSpeeds aZRX 2e18 0e18
+    SetAndVerifyArsSpeeds aBAT 3e18 0e18
+    VerifyArsSpeeds aZRX 2e18 0e18 -- Ensure these speeds weren't changed
+
+Test "Many different ARS supply speeds can be set then unset"
+    UseEnvironment1
+    SetAndVerifyArsSpeeds aZRX 2e18 0e18
+    SetAndVerifyArsSpeeds aBAT 3e18 0e18
+    VerifyArsSpeeds aZRX 2e18 0e18 -- Ensure these speeds weren't changed
+    SetAndVerifyArsSpeeds aBAT 0e18 0e18
+    VerifyArsSpeeds aZRX 2e18 0e18 -- Ensure these speeds weren't changed
+    SetAndVerifyArsSpeeds aZRX 0e18 0e18
+    VerifyArsSpeeds aBAT 0e18 0e18 -- Ensure these speeds weren't changed
+
+Test "Many different ARS supply speeds can be set, unset, and set again"
+    UseEnvironment1
+    SetAndVerifyArsSpeeds aZRX 2e18 0e18
+    SetAndVerifyArsSpeeds aBAT 3e18 0e18
+    VerifyArsSpeeds aZRX 2e18 0e18 -- Ensure these speeds weren't changed
+    SetAndVerifyArsSpeeds aBAT 0e18 0e18
+    VerifyArsSpeeds aZRX 2e18 0e18 -- Ensure these speeds weren't changed
+    SetAndVerifyArsSpeeds aZRX 0e18 0e18
+    VerifyArsSpeeds aBAT 0e18 0e18 -- Ensure these speeds weren't changed
+    SetAndVerifyArsSpeeds aZRX 5e18 0e18
+    VerifyArsSpeeds aBAT 0e18 0e18 -- Ensure these speeds weren't changed
+    SetAndVerifyArsSpeeds aBAT 6e18 0e18
+    VerifyArsSpeeds aZRX 5e18 0e18 -- Ensure these speeds weren't changed
+
+Test "Many different ARS supply speeds can be set w/ borrow speeds"
+    UseEnvironment1
+    SetAndVerifyArsSpeeds aZRX 2e18 1e18
+    SetAndVerifyArsSpeeds aBAT 3e18 1e18
+    VerifyArsSpeeds aZRX 2e18 1e18 -- Ensure these speeds weren't changed
+
+Test "Many different ARS supply speeds can be set then unset w/ borrow speeds"
+    UseEnvironment1
+    SetAndVerifyArsSpeeds aZRX 2e18 1e18
+    SetAndVerifyArsSpeeds aBAT 3e18 1e18
+    VerifyArsSpeeds aZRX 2e18 1e18 -- Ensure these speeds weren't changed
+    SetAndVerifyArsSpeeds aBAT 0e18 1e18
+    VerifyArsSpeeds aZRX 2e18 1e18 -- Ensure these speeds weren't changed
+    SetAndVerifyArsSpeeds aZRX 0e18 1e18
+    VerifyArsSpeeds aBAT 0e18 1e18 -- Ensure these speeds weren't changed
+
+Test "Many different ARS supply speeds can be set, unset, and set again w/ borrow speeds"
+    UseEnvironment1
+    SetAndVerifyArsSpeeds aZRX 2e18 1e18
+    SetAndVerifyArsSpeeds aBAT 3e18 1e18
+    VerifyArsSpeeds aZRX 2e18 1e18 -- Ensure these speeds weren't changed
+    SetAndVerifyArsSpeeds aBAT 0e18 1e18
+    VerifyArsSpeeds aZRX 2e18 1e18 -- Ensure these speeds weren't changed
+    SetAndVerifyArsSpeeds aZRX 0e18 1e18
+    VerifyArsSpeeds aBAT 0e18 1e18 -- Ensure these speeds weren't changed
+    SetAndVerifyArsSpeeds aZRX 5e18 1e18
+    VerifyArsSpeeds aBAT 0e18 1e18 -- Ensure these speeds weren't changed
+    SetAndVerifyArsSpeeds aBAT 6e18 1e18
+    VerifyArsSpeeds aZRX 5e18 1e18 -- Ensure these speeds weren't changed
+
+Test "Many different ARS borrow speeds can be set"
+    UseEnvironment1
+    SetAndVerifyArsSpeeds aZRX 0e18 2e18
+    SetAndVerifyArsSpeeds aBAT 0e18 3e18
+    VerifyArsSpeeds aZRX 0e18 2e18 -- Ensure these speeds weren't changed
+
+Test "Many different ARS borrow speeds can be set then unset"
+    UseEnvironment1
+    SetAndVerifyArsSpeeds aZRX 0e18 2e18
+    SetAndVerifyArsSpeeds aBAT 0e18 3e18
+    VerifyArsSpeeds aZRX 0e18 2e18 -- Ensure these speeds weren't changed
+    SetAndVerifyArsSpeeds aBAT 0e18 0e18
+    VerifyArsSpeeds aZRX 0e18 2e18 -- Ensure these speeds weren't changed
+    SetAndVerifyArsSpeeds aZRX 0e18 0e18
+    VerifyArsSpeeds aBAT 0e18 0e18 -- Ensure these speeds weren't changed
+
+Test "Many different ARS borrow speeds can be set, unset, and set again"
+    UseEnvironment1
+    SetAndVerifyArsSpeeds aZRX 0e18 2e18
+    SetAndVerifyArsSpeeds aBAT 0e18 3e18
+    VerifyArsSpeeds aZRX 0e18 2e18 -- Ensure these speeds weren't changed
+    SetAndVerifyArsSpeeds aBAT 0e18 0e18
+    VerifyArsSpeeds aZRX 0e18 2e18 -- Ensure these speeds weren't changed
+    SetAndVerifyArsSpeeds aZRX 0e18 0e18
+    VerifyArsSpeeds aBAT 0e18 0e18 -- Ensure these speeds weren't changed
+    SetAndVerifyArsSpeeds aZRX 0e18 5e18
+    VerifyArsSpeeds aBAT 0e18 0e18 -- Ensure these speeds weren't changed
+    SetAndVerifyArsSpeeds aBAT 0e18 6e18
+    VerifyArsSpeeds aZRX 0e18 5e18 -- Ensure these speeds weren't changed
+
+Test "Many different ARS borrow speeds can be set w/ supply speeds"
+    UseEnvironment1
+    SetAndVerifyArsSpeeds aZRX 1e18 2e18
+    SetAndVerifyArsSpeeds aBAT 1e18 3e18
+    VerifyArsSpeeds aZRX 1e18 2e18 -- Ensure these speeds weren't changed
+
+Test "Many different ARS borrow speeds can be set then unset w/ supply speeds"
+    UseEnvironment1
+    SetAndVerifyArsSpeeds aZRX 1e18 2e18
+    SetAndVerifyArsSpeeds aBAT 1e18 3e18
+    VerifyArsSpeeds aZRX 1e18 2e18 -- Ensure these speeds weren't changed
+    SetAndVerifyArsSpeeds aBAT 1e18 0e18
+    VerifyArsSpeeds aZRX 1e18 2e18 -- Ensure these speeds weren't changed
+    SetAndVerifyArsSpeeds aZRX 1e18 0e18
+    VerifyArsSpeeds aBAT 1e18 0e18 -- Ensure these speeds weren't changed
+
+Test "Many different ARS borrow speeds can be set, unset, and set again w/ supply speeds"
+    UseEnvironment1
+    SetAndVerifyArsSpeeds aZRX 1e18 2e18
+    SetAndVerifyArsSpeeds aBAT 1e18 3e18
+    VerifyArsSpeeds aZRX 1e18 2e18 -- Ensure these speeds weren't changed
+    SetAndVerifyArsSpeeds aBAT 1e18 0e18
+    VerifyArsSpeeds aZRX 1e18 2e18 -- Ensure these speeds weren't changed
+    SetAndVerifyArsSpeeds aZRX 1e18 0e18
+    VerifyArsSpeeds aBAT 1e18 0e18 -- Ensure these speeds weren't changed
+    SetAndVerifyArsSpeeds aZRX 1e18 5e18
+    VerifyArsSpeeds aBAT 1e18 0e18 -- Ensure these speeds weren't changed
+    SetAndVerifyArsSpeeds aBAT 1e18 6e18
+    VerifyArsSpeeds aZRX 1e18 5e18 -- Ensure these speeds weren't changed
