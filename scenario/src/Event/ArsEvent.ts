@@ -1,4 +1,4 @@
-AltSpeedScenTestimport { Event } from '../Event';
+import { Event } from '../Event';
 import { addAction, World, describeUser } from '../World';
 import { Ars, ArsScenario } from '../Contract/Ars';
 import { buildArs } from '../Builder/ArsBuilder';
