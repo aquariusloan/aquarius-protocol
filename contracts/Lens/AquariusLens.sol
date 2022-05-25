@@ -116,7 +116,7 @@ contract AquariusLens {
         address underlyingAssetAddress;
         uint underlyingDecimals;
 
-        if (compareStrings(aToken.symbol(), "cETH")) {
+        if (compareStrings(aToken.symbol(), "aBTT")) {
             underlyingAssetAddress = address(0);
             underlyingDecimals = 18;
         } else {
@@ -185,7 +185,7 @@ contract AquariusLens {
         uint tokenBalance;
         uint tokenAllowance;
 
-        if (compareStrings(aToken.symbol(), "cETH")) {
+        if (compareStrings(aToken.symbol(), "aBTT")) {
             tokenBalance = account.balance;
             tokenAllowance = account.balance;
         } else {

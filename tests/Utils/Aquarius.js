@@ -129,7 +129,7 @@ async function makeAToken(opts = {}) {
   const interestRateModel = opts.interestRateModel || await makeInterestRateModel(opts.interestRateModelOpts);
   const exchangeRate = etherMantissa(dfn(opts.exchangeRate, 1));
   const decimals = etherUnsigned(dfn(opts.decimals, 8));
-  const symbol = opts.symbol || (kind === 'cether' ? 'cETH' : 'cOMG');
+  const symbol = opts.symbol || (kind === 'cether' ? 'aBTT' : 'cOMG');
   const name = opts.name || `AToken ${symbol}`;
   const admin = opts.admin || root;
 

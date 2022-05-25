@@ -57,7 +57,7 @@ let getATokenAddresses = (aTokenArgs) => {
 		'aDAI',
 		'cUSDT',
 		'aBAT',
-		'cETH',
+		'aBTT',
 		'aSAI',
 		'aREP',
 		'aZRX',
