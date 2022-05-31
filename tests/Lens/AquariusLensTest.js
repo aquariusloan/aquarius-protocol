@@ -326,7 +326,7 @@ describe('AquariusLens', () => {
             againstVotes: "0",
             calldatas: callDatas,
             canceled: false,
-            endBlock: (Number(proposalBlock) + 17281).toString(),
+            endBlock: (Number(proposalBlock) + 129601).toString(),
             eta: "0",
             executed: false,
             forVotes: "0",
@@ -354,7 +354,7 @@ describe('AquariusLens', () => {
         expect(
           cullTuple(await call(aquariusLens, 'getArsBalanceMetadata', [ars._address, acct]))
         ).toEqual({
-          balance: "10000000000000000000000000",
+          balance: "1000000000000000000000000000",
           delegate: "0x0000000000000000000000000000000000000000",
           votes: "0",
         });
@@ -369,7 +369,7 @@ describe('AquariusLens', () => {
         expect(
           cullTuple(await call(aquariusLens, 'getArsBalanceMetadataExt', [ars._address, comptroller._address, acct]))
         ).toEqual({
-          balance: "10000000000000000000000000",
+          balance: "1000000000000000000000000000",
           delegate: "0x0000000000000000000000000000000000000000",
           votes: "0",
           allocated: "5"

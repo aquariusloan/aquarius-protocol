@@ -23,7 +23,7 @@ describe("governorBravo#castVote/2", () => {
     [root, a1, ...accounts] = saddle.accounts;
     ars = await deploy('Ars', [root]);
     govDelegate = await deploy('GovernorBravoDelegateHarness');
-    gov = await deploy('GovernorBravoDelegator', [address(0), ars._address, root, govDelegate._address, 17280, 1, "100000000000000000000000"]);
+    gov = await deploy('GovernorBravoDelegator', [address(0), ars._address, root, govDelegate._address, 129600, 1, "100000000000000000000000"]);
     mergeInterface(gov,govDelegate);
     await send(gov, '_initiate');
     
@@ -70,7 +70,7 @@ describe("governorBravo#castVote/2", () => {
 
       it("and we add that ForVotes", async () => {
         actor = accounts[1];
-        await enfranchise(ars, actor, 400001);
+        await enfranchise(ars, actor, 40000001);
 
         await send(gov, 'propose', [targets, values, signatures, callDatas, "do nothing"], { from: actor });
         proposalId = await call(gov, 'latestProposalIds', [actor]);
@@ -80,12 +80,12 @@ describe("governorBravo#castVote/2", () => {
         await send(gov, 'castVote', [proposalId, 1], { from: actor });
 
         let afterFors = (await call(gov, 'proposals', [proposalId])).forVotes;
-        expect(new BigNumber(afterFors)).toEqual(new BigNumber(beforeFors).plus(etherMantissa(400001)));
+        expect(new BigNumber(afterFors)).toEqual(new BigNumber(beforeFors).plus(etherMantissa(40000001)));
       })
 
       it("or AgainstVotes corresponding to the caller's support flag.", async () => {
         actor = accounts[3];
-        await enfranchise(ars, actor, 400001);
+        await enfranchise(ars, actor, 40000001);
 
         await send(gov, 'propose', [targets, values, signatures, callDatas, "do nothing"], { from: actor });
         proposalId = await call(gov, 'latestProposalIds', [actor]);;
@@ -95,7 +95,7 @@ describe("governorBravo#castVote/2", () => {
         await send(gov, 'castVote', [proposalId, 0], { from: actor });
 
         let afterAgainsts = (await call(gov, 'proposals', [proposalId])).againstVotes;
-        expect(new BigNumber(afterAgainsts)).toEqual(new BigNumber(beforeAgainsts).plus(etherMantissa(400001)));
+        expect(new BigNumber(afterAgainsts)).toEqual(new BigNumber(beforeAgainsts).plus(etherMantissa(40000001)));
       });
     });
 
@@ -117,7 +117,7 @@ describe("governorBravo#castVote/2", () => {
       });
 
       it('casts vote on behalf of the signatory', async () => {
-        await enfranchise(ars, a1, 400001);
+        await enfranchise(ars, a1, 40000001);
         await send(gov, 'propose', [targets, values, signatures, callDatas, "do nothing"], { from: a1 });
         proposalId = await call(gov, 'latestProposalIds', [a1]);;
 
@@ -129,15 +129,15 @@ describe("governorBravo#castVote/2", () => {
         expect(tx.gasUsed < 80000);
 
         let afterFors = (await call(gov, 'proposals', [proposalId])).forVotes;
-        expect(new BigNumber(afterFors)).toEqual(new BigNumber(beforeFors).plus(etherMantissa(400001)));
+        expect(new BigNumber(afterFors)).toEqual(new BigNumber(beforeFors).plus(etherMantissa(40000001)));
       });
     });
 
      it("receipt uses two loads", async () => {
       let actor = accounts[2];
       let actor2 = accounts[3];
-      await enfranchise(ars, actor, 400001);
-      await enfranchise(ars, actor2, 400001);
+      await enfranchise(ars, actor, 40000001);
+      await enfranchise(ars, actor2, 40000001);
       await send(gov, 'propose', [targets, values, signatures, callDatas, "do nothing"], { from: actor });
       proposalId = await call(gov, 'latestProposalIds', [actor]);
 
@@ -159,7 +159,7 @@ describe("governorBravo#castVote/2", () => {
         postFilter: ({source}) => !source || source.includes('receipts'),
         execLog: (log) => {
           let [output] = log.outputs;
-          let votes = "000000000000000000000000000000000000000054b419003bdf81640000";
+          let votes = "000000000000000000000000000000000000002116546630bbd4cf640000";
           let voted = "01";
           let support = "01";
 
@@ -187,7 +187,7 @@ describe("governorBravo#castVote/2", () => {
         postFilter: ({source}) => !source || source.includes('receipts'),
         execLog: (log) => {
           let [output] = log.outputs;
-          let votes = "0000000000000000000000000000000000000000a968320077bf02c80000";
+          let votes = "00000000000000000000000000000000000000422ca8cc6177a99ec80000";
           let voted = "01";
           let support = "00";
 

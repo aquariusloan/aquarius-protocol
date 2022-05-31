@@ -13,7 +13,7 @@ UseConfigs mainnet
 MineBlock
 From ArsVoter1 (Governor GovernorAlpha Proposal 11 Vote For)
 From ArsVoter2 (Governor GovernorAlpha Proposal 11 Vote For)
-AdvanceBlocks 20000
+AdvanceBlocks 150000
 Governor GovernorAlpha Proposal 11 Queue
 IncreaseTime 604910
 Governor GovernorAlpha Proposal 11 Execute

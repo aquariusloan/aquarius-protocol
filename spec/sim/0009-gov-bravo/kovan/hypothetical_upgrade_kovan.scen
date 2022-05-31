@@ -8,14 +8,14 @@ Web3Fork "https://kovan-eth.aquarius.loan/@23053022" (Arr00)
 UseConfigs kovan
 
 GovernorBravo Deploy BravoDelegate BravoDelegate2
-GovernorBravo Deploy BravoDelegator BravoDelegator2 (Address Timelock) (Address Ars) (Address Timelock) (Address BravoDelegate2) 17280 1 100000e18
+GovernorBravo Deploy BravoDelegator BravoDelegator2 (Address Timelock) (Address Ars) (Address Timelock) (Address BravoDelegate2) 129600 1 10000000e18
 
 From Arr00 (Governor GovernorAlpha Propose "Governor Bravo" [(Address Timelock) (Address BravoDelegator2)] [0 0] ["setPendingAdmin(address)" "_initiate(address)"] [[(Address BravoDelegator2)] [(Address GovernorAlpha)]])
 
 -- Vote for, queue, and execute the proposal
 MineBlock
 From Arr00 (Governor GovernorAlpha Proposal LastProposal Vote For)
-AdvanceBlocks 20000
+AdvanceBlocks 150000
 Governor GovernorAlpha Proposal LastProposal Queue
 IncreaseTime 604910
 Governor GovernorAlpha Proposal LastProposal Execute
@@ -26,7 +26,7 @@ From Arr00 (GovernorBravo BravoDelegator2 Propose "Grant Ars" [("0x5eAe89DC1C671
 -- Vote for, queue, and execute the proposal
 MineBlock
 From Arr00 (GovernorBravo BravoDelegator2 Proposal LastProposal Vote For)
-AdvanceBlocks 20000
+AdvanceBlocks 150000
 GovernorBravo BravoDelegator2 Proposal LastProposal Queue
 IncreaseTime 604910
 GovernorBravo BravoDelegator2 Proposal LastProposal Execute

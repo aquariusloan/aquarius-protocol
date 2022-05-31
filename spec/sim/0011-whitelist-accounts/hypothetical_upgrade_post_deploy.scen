@@ -19,7 +19,7 @@ From ArsHolder (GovernorBravo GovernorBravoDelegator Propose "Whitelist Accounts
 MineBlock
 AdvanceBlocks 13140
 From ArsHolder (GovernorBravo GovernorBravoDelegator Proposal LastProposal Vote For)
-AdvanceBlocks 20000
+AdvanceBlocks 150000
 GovernorBravo GovernorBravoDelegator Proposal LastProposal Queue
 IncreaseTime 604910
 GovernorBravo GovernorBravoDelegator Proposal LastProposal Execute

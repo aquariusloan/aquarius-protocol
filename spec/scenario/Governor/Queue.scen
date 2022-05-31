@@ -4,7 +4,7 @@ Macro DeployGov
     Ars Deploy Bank
     Governor Deploy Alpha LegitGov (Address Timelock) (Address Ars) Guardian
     Timelock SetAdmin (Address LegitGov)
-    Enfranchise Root 400001e18
+    Enfranchise Root 20000001e18
     MineBlock
 
 Macro Enfranchise user amount
@@ -35,7 +35,7 @@ Macro GivenSucceededProposal
 
 Macro SucceedProposal
     Governor LegitGov Proposal LastProposal Vote For
-    AdvanceBlocks 20000
+    AdvanceBlocks 150000
     Assert Equal ("Succeeded") (Governor LegitGov Proposal LastProposal State)
 
 Test "Queue simple action"
@@ -54,7 +54,7 @@ Test "Queue simple action"
 Test "Queue 2 actions with multiple params"
     GivenActiveProposal
     Governor LegitGov Proposal LastProposal Vote For
-    AdvanceBlocks 20000
+    AdvanceBlocks 150000
     QueueLastProposal
     Assert Log ProposalQueued (id 1)
     Assert Log ProposalQueued (eta (Governor LegitGov Proposal LastProposal Eta))
@@ -93,7 +93,7 @@ Test "Revert queue proposal is Active"
 Test "Revert queue when proposal is Defeated"
     GivenActiveProposal
     Governor LegitGov Proposal LastProposal Vote Against
-    AdvanceBlocks 20000
+    AdvanceBlocks 150000
     AllowFailures
     Assert Equal ("Defeated") (Governor LegitGov Proposal LastProposal State)
     Governor LegitGov Proposal LastProposal Queue
@@ -118,7 +118,7 @@ Test "Revert when queuing an already executed proposal"
 
 Test "Revert when queuing on invalid Timelock"
     Ars Deploy Bank
-    Enfranchise Root 600001e18
+    Enfranchise Root 60000001e18
     Counter Deploy CNT1
     Governor Deploy Alpha LegitGov (Address Zero) (Address Ars) Guardian
     Governor LegitGov Propose "Add 5" [(Address CNT1)] [1] ["increment(uint256)"] [["2"]]

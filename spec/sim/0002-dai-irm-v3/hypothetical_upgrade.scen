@@ -19,7 +19,7 @@ From ArsHolder (Governor GovernorAlpha Propose "DAI IRM v3" [(Address aDAI)] [0]
 -- Vote for, queue, and execute the proposal
 MineBlock
 From ArsHolder (Governor GovernorAlpha Proposal LastProposal Vote For)
-AdvanceBlocks 20000
+AdvanceBlocks 150000
 Governor GovernorAlpha Proposal LastProposal Queue
 IncreaseTime 604910
 Governor GovernorAlpha Proposal LastProposal Execute
@@ -33,7 +33,7 @@ From ArsHolder (Governor GovernorAlpha Propose "DAI IRM v3 update" [(Address Upd
 -- Vote for, queue, and execute the proposal to update
 MineBlock
 From ArsHolder (Governor GovernorAlpha Proposal LastProposal Vote For)
-AdvanceBlocks 20000
+AdvanceBlocks 150000
 Governor GovernorAlpha Proposal LastProposal Queue
 IncreaseTime 604910
 

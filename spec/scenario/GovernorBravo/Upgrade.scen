@@ -4,10 +4,10 @@ Macro DeployGov
     SetTime 10
     Counter Deploy CNT1
     Ars Deploy Bank
-    Enfranchise Root 400001e18
+    Enfranchise Root 20000001e18
     Timelock Deploy Jared 604800
     GovernorBravo Deploy BravoDelegateHarness BravoDelegateHarness
-    GovernorBravo Deploy BravoDelegator Alpha (Address Timelock) (Address Ars) (Address Root) (Address BravoDelegateHarness) 17280 1 100000e18
+    GovernorBravo Deploy BravoDelegator Alpha (Address Timelock) (Address Ars) (Address Root) (Address BravoDelegateHarness) 129600 1 10000000e18
     GovernorBravo Alpha MergeABI BravoDelegateHarness
     GovernorBravo Alpha HarnessInitiate
     Timelock SetAdmin (Address Alpha)
@@ -16,9 +16,9 @@ Macro DeployGov
 Macro SucceedQueueExecuteLastProposal gov
     MineBlock
     GovernorBravo gov Proposal LastProposal Vote For
-    AdvanceBlocks 20000
+    AdvanceBlocks 150000
     MineBlock
-    Enfranchise Root 600001e18
+    Enfranchise Root 60000001e18
     Assert Equal ("Succeeded") (GovernorBravo gov Proposal LastProposal State)
     GovernorBravo gov Proposal LastProposal Queue
     Assert Equal ("Queued") (GovernorBravo gov Proposal LastProposal State)
@@ -33,7 +33,7 @@ Macro Enfranchise user amount
 Test "Governor can switch to a new governor"
     DeployGov
     GovernorBravo Deploy BravoDelegate BravoDelegate
-    GovernorBravo Deploy BravoDelegator Bravo (Address Timelock) (Address Ars) (Address Timelock) (Address BravoDelegate) 17280 1 100000e18
+    GovernorBravo Deploy BravoDelegator Bravo (Address Timelock) (Address Ars) (Address Timelock) (Address BravoDelegate) 129600 1 10000000e18
     GovernorBravo Bravo MergeABI BravoDelegate
     GovernorBravo Alpha Propose "Upgrade Governor" [(Address Timelock) (Address Bravo)] [0 0] ["setPendingAdmin(address)" "_initiate(address)"] [[(Address Bravo)] [(Address Alpha)]]
     SucceedQueueExecuteLastProposal Alpha

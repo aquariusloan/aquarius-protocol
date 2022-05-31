@@ -81,7 +81,7 @@ From ArsHolder (GovernorBravo GovernorBravo Propose "Upgrade Comptroller" [(Addr
 MineBlock
 AdvanceBlocks 14000
 From ArsHolder (GovernorBravo GovernorBravo Proposal LastProposal Vote For)
-AdvanceBlocks 20000
+AdvanceBlocks 150000
 GovernorBravo GovernorBravo Proposal LastProposal Queue
 IncreaseTime 604910
 GovernorBravo GovernorBravo Proposal LastProposal Execute
@@ -211,7 +211,7 @@ From ArsHolder (GovernorBravo GovernorBravo Propose "Exploit rewards bug 1" [(Ad
 MineBlock
 AdvanceBlocks 14000
 From ArsHolder (GovernorBravo GovernorBravo Proposal LastProposal Vote For)
-AdvanceBlocks 20000
+AdvanceBlocks 150000
 GovernorBravo GovernorBravo Proposal LastProposal Queue
 IncreaseTime 604910
 GovernorBravo GovernorBravo Proposal LastProposal Execute
@@ -232,7 +232,7 @@ From ArsHolder (GovernorBravo GovernorBravo Propose "Exploit rewards bug 2" [(Ad
 MineBlock
 AdvanceBlocks 14000
 From ArsHolder (GovernorBravo GovernorBravo Proposal LastProposal Vote For)
-AdvanceBlocks 20000
+AdvanceBlocks 150000
 GovernorBravo GovernorBravo Proposal LastProposal Queue
 IncreaseTime 604910
 GovernorBravo GovernorBravo Proposal LastProposal Execute
@@ -252,7 +252,7 @@ From ArsHolder (GovernorBravo GovernorBravo Propose "Exploit rewards bug 3" [(Ad
 MineBlock
 AdvanceBlocks 14000
 From ArsHolder (GovernorBravo GovernorBravo Proposal LastProposal Vote For)
-AdvanceBlocks 20000
+AdvanceBlocks 150000
 GovernorBravo GovernorBravo Proposal LastProposal Queue
 IncreaseTime 604910
 GovernorBravo GovernorBravo Proposal LastProposal Execute

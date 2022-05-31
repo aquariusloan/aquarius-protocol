@@ -25,7 +25,7 @@ describe('GovernorAlpha#queue/1', () => {
       const gov = await deploy('GovernorAlpha', [timelock._address, ars._address, root]);
       const txAdmin = await send(timelock, 'harnessSetAdmin', [gov._address]);
 
-      await enfranchise(ars, a1, 3e6);
+      await enfranchise(ars, a1, 3e8);
       await mineBlock();
 
       const targets = [ars._address, ars._address];
@@ -36,7 +36,7 @@ describe('GovernorAlpha#queue/1', () => {
       await mineBlock();
 
       const txVote1 = await send(gov, 'castVote', [proposalId1, true], {from: a1});
-      await advanceBlocks(20000);
+      await advanceBlocks(150000);
 
       await expect(
         send(gov, 'queue', [proposalId1])
@@ -49,8 +49,8 @@ describe('GovernorAlpha#queue/1', () => {
       const gov = await deploy('GovernorAlpha', [timelock._address, ars._address, root]);
       const txAdmin = await send(timelock, 'harnessSetAdmin', [gov._address]);
 
-      await enfranchise(ars, a1, 3e6);
-      await enfranchise(ars, a2, 3e6);
+      await enfranchise(ars, a1, 3e8);
+      await enfranchise(ars, a2, 3e8);
       await mineBlock();
 
       const targets = [ars._address];
@@ -63,7 +63,7 @@ describe('GovernorAlpha#queue/1', () => {
 
       const txVote1 = await send(gov, 'castVote', [proposalId1, true], {from: a1});
       const txVote2 = await send(gov, 'castVote', [proposalId2, true], {from: a2});
-      await advanceBlocks(20000);
+      await advanceBlocks(150000);
       await freezeTime(100);
 
       const txQueue1 = await send(gov, 'queue', [proposalId1]);

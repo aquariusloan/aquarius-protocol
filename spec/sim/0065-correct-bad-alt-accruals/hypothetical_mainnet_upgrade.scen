@@ -39,7 +39,7 @@ PrintNumber LastGas
 MineBlock
 AdvanceBlocks 14000
 From ArsHolder (GovernorBravo GovernorBravo Proposal LastProposal Vote For)
-AdvanceBlocks 20000
+AdvanceBlocks 150000
 GovernorBravo GovernorBravo Proposal LastProposal Queue
 IncreaseTime 604910
 GovernorBravo GovernorBravo Proposal LastProposal Execute
@@ -86,7 +86,7 @@ From ArsHolder (GovernorBravo GovernorBravo Propose "Call fixBadAccruals for a s
 MineBlock
 AdvanceBlocks 14000
 From ArsHolder (GovernorBravo GovernorBravo Proposal LastProposal Vote For)
-AdvanceBlocks 20000
+AdvanceBlocks 150000
 GovernorBravo GovernorBravo Proposal LastProposal Queue
 IncreaseTime 604910
 AllowFailures

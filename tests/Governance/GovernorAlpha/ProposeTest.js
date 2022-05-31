@@ -46,7 +46,7 @@ describe('GovernorAlpha#propose/5', () => {
     });
 
     it("End block is set to the current block number plus the sum of vote delay and vote period", async () => {
-      expect(trivialProposal.endBlock).toEqual(proposalBlock + 1 + 17280 + "");
+      expect(trivialProposal.endBlock).toEqual(proposalBlock + 1 + 129600 + "");
     });
 
     it("ForVotes and AgainstVotes are initialized to zero", async () => {
@@ -119,7 +119,7 @@ describe('GovernorAlpha#propose/5', () => {
     });
 
     it("This function returns the id of the newly created proposal. # proposalId(n) = succ(proposalId(n-1))", async () => {
-      await send(ars, 'transfer', [accounts[2], etherMantissa(400001)]);
+      await send(ars, 'transfer', [accounts[2], etherMantissa(40000001)]);
       await send(ars, 'delegate', [accounts[2]], { from: accounts[2] });
 
       await mineBlock();
@@ -130,7 +130,7 @@ describe('GovernorAlpha#propose/5', () => {
     });
 
     it("emits log with id and description", async () => {
-      await send(ars, 'transfer', [accounts[3], etherMantissa(400001)]);
+      await send(ars, 'transfer', [accounts[3], etherMantissa(40000001)]);
       await send(ars, 'delegate', [accounts[3]], { from: accounts[3] });
       await mineBlock();
       let nextProposalId = await gov.methods['propose'](targets, values, signatures, callDatas, "yoot").call({ from: accounts[3] });
@@ -144,7 +144,7 @@ describe('GovernorAlpha#propose/5', () => {
         signatures: signatures,
         calldatas: callDatas,
         startBlock: 14,
-        endBlock: 17294,
+        endBlock: 129614,
         description: "second proposal",
         proposer: accounts[3]
       });

@@ -11,7 +11,7 @@ describe('GovernorBravo#propose/5', () => {
   beforeAll(async () => {
     [root, acct, ...accounts] = accounts;
     ars = await deploy('Ars', [root]);
-    gov = await deploy('GovernorBravoImmutable', [address(0), ars._address, root, 17280, 1, "100000000000000000000000"]);
+    gov = await deploy('GovernorBravoImmutable', [address(0), ars._address, root, 129600, 1, "100000000000000000000000"]);
     await send(gov,'_initiate');
   });
 
@@ -47,7 +47,7 @@ describe('GovernorBravo#propose/5', () => {
     });
 
     it("End block is set to the current block number plus the sum of vote delay and vote period", async () => {
-      expect(trivialProposal.endBlock).toEqual(proposalBlock + 1 + 17280 + "");
+      expect(trivialProposal.endBlock).toEqual(proposalBlock + 1 + 129600 + "");
     });
 
     it("ForVotes and AgainstVotes are initialized to zero", async () => {
@@ -120,7 +120,7 @@ describe('GovernorBravo#propose/5', () => {
     });
 
     it("This function returns the id of the newly created proposal. # proposalId(n) = succ(proposalId(n-1))", async () => {
-      await send(ars, 'transfer', [accounts[2], etherMantissa(400001)]);
+      await send(ars, 'transfer', [accounts[2], etherMantissa(40000001)]);
       await send(ars, 'delegate', [accounts[2]], { from: accounts[2] });
 
       await mineBlock();
@@ -131,7 +131,7 @@ describe('GovernorBravo#propose/5', () => {
     });
 
     it("emits log with id and description", async () => {
-      await send(ars, 'transfer', [accounts[3], etherMantissa(400001)]);
+      await send(ars, 'transfer', [accounts[3], etherMantissa(40000001)]);
       await send(ars, 'delegate', [accounts[3]], { from: accounts[3] });
       await mineBlock();
       let nextProposalId = await gov.methods['propose'](targets, values, signatures, callDatas, "yoot").call({ from: accounts[3] });
@@ -145,7 +145,7 @@ describe('GovernorBravo#propose/5', () => {
         signatures: signatures,
         calldatas: callDatas,
         startBlock: 15,
-        endBlock: 17295,
+        endBlock: 129615,
         description: "second proposal",
         proposer: accounts[3]
       });
