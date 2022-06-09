@@ -26,8 +26,11 @@ contract AquariusBandPriceOracle is PriceOracle {
     address public admin;
 
     mapping(address => uint) prices;
+    mapping(address => string) feedSymbols;
+
     event PricePosted(address asset, uint previousPriceMantissa, uint requestedPriceMantissa, uint newPriceMantissa);
     event NewAdmin(address oldAdmin, address newAdmin);
+    event FeedSymbolUpdated(address underlying, string feedSymbol);
 
     IStdReference ref;
 
@@ -47,13 +50,26 @@ contract AquariusBandPriceOracle is PriceOracle {
             if(prices[address(token)] != 0) {
                 price = prices[address(token)];
             } else {
-                IStdReference.ReferenceData memory data = ref.getReferenceData(token.symbol(), "USD");
+                string memory feedSymbol = feedSymbols[address(token)];
+                IStdReference.ReferenceData memory data = ref.getReferenceData(feedSymbol, "USD");
                 price = data.rate;
             }
 
             uint decimalDelta = 18-uint(token.decimals());
             return price.mul(10**decimalDelta);
         }
+    }
+
+    function getFeedSymbol(address underlying) public view returns (string memory) {
+        return feedSymbols[underlying];
+    }
+
+    function getSymbolPrice(string memory symbol) public view returns(uint) {
+        uint256 price;
+        IStdReference.ReferenceData memory data = ref.getReferenceData(symbol, "USD");
+        price = data.rate;
+        
+        return price;
     }
 
     function setUnderlyingPrice(AToken aToken, uint underlyingPriceMantissa) public {
@@ -75,6 +91,16 @@ contract AquariusBandPriceOracle is PriceOracle {
 
     function compareStrings(string memory a, string memory b) internal pure returns (bool) {
         return (keccak256(abi.encodePacked((a))) == keccak256(abi.encodePacked((b))));
+    }
+
+    function setFeedSymbol(address underlying, string calldata feedSymbol) external {
+        require(msg.sender == admin, "only admin can set feed symbol");
+        require(underlying != address(0), "underlying can't be zero");
+        require(bytes(feedSymbol).length != 0, "feed symbol can't be zero");
+
+        feedSymbols[underlying] = feedSymbol;
+
+        emit FeedSymbolUpdated(underlying, feedSymbol);
     }
 
     function setAdmin(address newAdmin) external {
