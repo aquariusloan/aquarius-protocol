@@ -98,7 +98,7 @@ contract PausingTimelock is ATokenInterface {
 
     function queueTransaction(address target, uint value, string memory signature, bytes memory data, uint eta) public returns (bytes32) {
         if (getPausedMarkets()) {
-            require(msg.sender == emergencyAdmin || msg.sender == admin, "Timelock::queueTransaction: Call must come from emergency admin.");
+            require(msg.sender == emergencyAdmin, "Timelock::queueTransaction: Call must come from emergency admin.");
         }
         else {
             require(msg.sender == admin, "Timelock::queueTransaction: Call must come from admin.");
@@ -124,7 +124,7 @@ contract PausingTimelock is ATokenInterface {
 
     function executeTransaction(address target, uint value, string memory signature, bytes memory data, uint eta) public payable returns (bytes memory) {
         if (getPausedMarkets()) {
-            require(msg.sender == emergencyAdmin || msg.sender == admin, "Timelock::executeTransaction: Call must come from emergency admin.");
+            require(msg.sender == emergencyAdmin, "Timelock::executeTransaction: Call must come from emergency admin.");
         }
         else {
             require(msg.sender == admin, "Timelock::executeTransaction: Call must come from admin.");
