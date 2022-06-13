@@ -1441,6 +1441,24 @@ contract Comptroller is ComptrollerV7Storage, ComptrollerInterface, ComptrollerE
     }
 
     /**
+     * @notice Return market mint status
+     * @dev The automatic getter may be used to access an individual market mint paused status.
+     * @return The market to check if mint paused
+     */
+    function getMintGuardianPaused(AToken aToken) public view returns (bool) {
+        return mintGuardianPaused[address(aToken)];
+    }
+
+    /**
+     * @notice Return market borrow status
+     * @dev The automatic getter may be used to access an individual market borrow paused status.
+     * @return The market to check if mint paused
+     */
+    function getBorrowGuardianPaused(AToken aToken) public view returns (bool) {
+        return borrowGuardianPaused[address(aToken)];
+    }
+
+    /**
      * @notice Returns true if the given aToken market has been deprecated
      * @dev All borrows in a deprecated aToken market can be immediately liquidated
      * @param aToken The market to check if deprecated
