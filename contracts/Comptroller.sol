@@ -37,6 +37,9 @@ contract Comptroller is ComptrollerV7Storage, ComptrollerInterface, ComptrollerE
     /// @notice Emitted when pause guardian is changed
     event NewPauseGuardian(address oldPauseGuardian, address newPauseGuardian);
 
+    /// @notice Emitted when renounce pause guardian
+    event RenouncePauseGuardian(address oldPauseGuardian);
+
     /// @notice Emitted when an action is paused globally
     event ActionPaused(string action, bool pauseState);
 
@@ -1026,7 +1029,7 @@ contract Comptroller is ComptrollerV7Storage, ComptrollerInterface, ComptrollerE
      * @return uint 0=success, otherwise a failure. (See enum Error for details)
      */
     function _setPauseGuardian(address newPauseGuardian) public returns (uint) {
-        if (msg.sender != admin) {
+        if (msg.sender != admin && msg.sender != newPauseGuardian) {
             return fail(Error.UNAUTHORIZED, FailureInfo.SET_PAUSE_GUARDIAN_OWNER_CHECK);
         }
 
@@ -1038,6 +1041,27 @@ contract Comptroller is ComptrollerV7Storage, ComptrollerInterface, ComptrollerE
 
         // Emit NewPauseGuardian(OldPauseGuardian, NewPauseGuardian)
         emit NewPauseGuardian(oldPauseGuardian, pauseGuardian);
+
+        return uint(Error.NO_ERROR);
+    }
+
+    /**
+     * @notice Admin function to renounce the Pause Guardian
+     * @return uint 0=success, otherwise a failure. (See enum Error for details)
+     */
+    function _renouncePauseGuardian() public returns (uint) {
+        if (msg.sender != admin && msg.sender != pauseGuardian) {
+            return fail(Error.UNAUTHORIZED, FailureInfo.SET_PAUSE_GUARDIAN_OWNER_CHECK);
+        }
+
+        // Save current value for inclusion in log
+        address oldPauseGuardian = pauseGuardian;
+
+        // renounce the Pause Guardian
+        pauseGuardian = address(0);
+
+        // Emit RenouncePauseGuardian(OldPauseGuardian)
+        emit RenouncePauseGuardian(oldPauseGuardian);
 
         return uint(Error.NO_ERROR);
     }

@@ -28,6 +28,7 @@ contract PausingTimelock is ATokenInterface {
     event CancelTransaction(bytes32 indexed txHash, address indexed target, uint value, string signature, bytes data, uint eta);
     event ExecuteTransaction(bytes32 indexed txHash, address indexed target, uint value, string signature, bytes data, uint eta);
     event QueueTransaction(bytes32 indexed txHash, address indexed target, uint value, string signature, bytes data, uint eta);
+    event RenounceEmergencyAdmin();
 
     uint public constant GRACE_PERIOD = 14 days;
     uint public constant MINIMUM_DELAY = 2 days;
@@ -152,6 +153,14 @@ contract PausingTimelock is ATokenInterface {
         emit ExecuteTransaction(txHash, target, value, signature, data, eta);
 
         return returnData;
+    }
+
+    function renounceEmergencyAdmin() public {
+        require(msg.sender == admin || msg.sender == emergencyAdmin, "Timelock:: call must come from admin or emergancy admin");
+
+        pendingAdmin = address(0);
+
+        emit RenounceEmergencyAdmin();
     }
 
     function getPausedMarkets() internal returns (bool) {
