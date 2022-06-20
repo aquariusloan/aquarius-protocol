@@ -1029,7 +1029,7 @@ contract Comptroller is ComptrollerV7Storage, ComptrollerInterface, ComptrollerE
      * @return uint 0=success, otherwise a failure. (See enum Error for details)
      */
     function _setPauseGuardian(address newPauseGuardian) public returns (uint) {
-        if (msg.sender != admin && msg.sender != newPauseGuardian) {
+        if (msg.sender != admin && msg.sender != pauseGuardian) {
             return fail(Error.UNAUTHORIZED, FailureInfo.SET_PAUSE_GUARDIAN_OWNER_CHECK);
         }
 
