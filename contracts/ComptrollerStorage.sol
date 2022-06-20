@@ -159,3 +159,12 @@ contract ComptrollerV7Storage is ComptrollerV6Storage {
     /// @notice Accounting storage mapping account addresses to how much ARS they owe the protocol.
     mapping(address => uint) public arsReceivable;
 }
+
+contract ComptrollerV8Storage is ComptrollerV7Storage {
+    /**
+     * @notice The Team Pause Guardian can pause certain actions as a safety mechanism.
+     *  Actions which allow users to remove their own assets cannot be paused.
+     *  Liquidation / seizing / transfer can only be paused globally, not by market.
+     */
+    address public teamPauseGuardian;
+}

@@ -12,7 +12,7 @@ import "./Governance/Ars.sol";
  * @title Aquarius's Comptroller Contract
  * @author Aquarius
  */
-contract Comptroller is ComptrollerV7Storage, ComptrollerInterface, ComptrollerErrorReporter, ExponentialNoError {
+contract Comptroller is ComptrollerV8Storage, ComptrollerInterface, ComptrollerErrorReporter, ExponentialNoError {
     /// @notice Emitted when an admin supports a market
     event MarketListed(AToken aToken);
 
@@ -39,6 +39,12 @@ contract Comptroller is ComptrollerV7Storage, ComptrollerInterface, ComptrollerE
 
     /// @notice Emitted when renounce pause guardian
     event RenouncePauseGuardian(address oldPauseGuardian);
+
+    /// @notice Emitted when team pause guardian is changed
+    event NewTeamPauseGuardian(address oldTeamPauseGuardian, address newTeamPauseGuardian);
+
+    /// @notice Emitted when renounce team pause guardian
+    event RenounceTeamPauseGuardian(address oldTeamPauseGuardian);
 
     /// @notice Emitted when an action is paused globally
     event ActionPaused(string action, bool pauseState);
@@ -1066,9 +1072,52 @@ contract Comptroller is ComptrollerV7Storage, ComptrollerInterface, ComptrollerE
         return uint(Error.NO_ERROR);
     }
 
+    /**
+     * @notice Admin function to change the Team Pause Guardian
+     * @param newTeamPauseGuardian The address of the new Team Pause Guardian
+     * @return uint 0=success, otherwise a failure. (See enum Error for details)
+     */
+    function _setTeamPauseGuardian(address newTeamPauseGuardian) public returns (uint) {
+        if (msg.sender != admin && msg.sender != teamPauseGuardian) {
+            return fail(Error.UNAUTHORIZED, FailureInfo.SET_PAUSE_GUARDIAN_OWNER_CHECK);
+        }
+
+        // Save current value for inclusion in log
+        address oldTeamPauseGuardian = teamPauseGuardian;
+
+        // Store teamPauseGuardian with value newTeamPauseGuardian
+        teamPauseGuardian = newTeamPauseGuardian;
+
+        // Emit NewTeamPauseGuardian(OldTeamPauseGuardian, NewTeamPauseGuardian)
+        emit NewTeamPauseGuardian(oldTeamPauseGuardian, teamPauseGuardian);
+
+        return uint(Error.NO_ERROR);
+    }
+
+    /**
+     * @notice Admin function to renounce the Team Pause Guardian
+     * @return uint 0=success, otherwise a failure. (See enum Error for details)
+     */
+    function _renounceTeamPauseGuardian() public returns (uint) {
+        if (msg.sender != admin && msg.sender != teamPauseGuardian) {
+            return fail(Error.UNAUTHORIZED, FailureInfo.SET_PAUSE_GUARDIAN_OWNER_CHECK);
+        }
+
+        // Save current value for inclusion in log
+        address oldTeamPauseGuardian = teamPauseGuardian;
+
+        // renounce the Team Pause Guardian
+        teamPauseGuardian = address(0);
+
+        // Emit RenounceTeamPauseGuardian(OldTeamPauseGuardian)
+        emit RenounceTeamPauseGuardian(oldTeamPauseGuardian);
+
+        return uint(Error.NO_ERROR);
+    }
+
     function _setMintPaused(AToken aToken, bool state) public returns (bool) {
         require(markets[address(aToken)].isListed, "cannot pause a market that is not listed");
-        require(msg.sender == pauseGuardian || msg.sender == admin, "only pause guardian and admin can pause");
+        require(msg.sender == pauseGuardian || msg.sender == teamPauseGuardian || msg.sender == admin, "only pause guardian, team pause guardian and admin can pause");
         require(msg.sender == admin || state == true, "only admin can unpause");
 
         mintGuardianPaused[address(aToken)] = state;
@@ -1078,7 +1127,7 @@ contract Comptroller is ComptrollerV7Storage, ComptrollerInterface, ComptrollerE
 
     function _setBorrowPaused(AToken aToken, bool state) public returns (bool) {
         require(markets[address(aToken)].isListed, "cannot pause a market that is not listed");
-        require(msg.sender == pauseGuardian || msg.sender == admin, "only pause guardian and admin can pause");
+        require(msg.sender == pauseGuardian || msg.sender == teamPauseGuardian || msg.sender == admin, "only pause guardian, team pause guardian and admin can pause");
         require(msg.sender == admin || state == true, "only admin can unpause");
 
         borrowGuardianPaused[address(aToken)] = state;
@@ -1087,7 +1136,7 @@ contract Comptroller is ComptrollerV7Storage, ComptrollerInterface, ComptrollerE
     }
 
     function _setTransferPaused(bool state) public returns (bool) {
-        require(msg.sender == pauseGuardian || msg.sender == admin, "only pause guardian and admin can pause");
+        require(msg.sender == pauseGuardian || msg.sender == teamPauseGuardian || msg.sender == admin, "only pause guardian, team pause guardian and admin can pause");
         require(msg.sender == admin || state == true, "only admin can unpause");
 
         transferGuardianPaused = state;
@@ -1096,7 +1145,7 @@ contract Comptroller is ComptrollerV7Storage, ComptrollerInterface, ComptrollerE
     }
 
     function _setSeizePaused(bool state) public returns (bool) {
-        require(msg.sender == pauseGuardian || msg.sender == admin, "only pause guardian and admin can pause");
+        require(msg.sender == pauseGuardian || msg.sender == teamPauseGuardian || msg.sender == admin, "only pause guardian and admin can pause");
         require(msg.sender == admin || state == true, "only admin can unpause");
 
         seizeGuardianPaused = state;
