@@ -1145,7 +1145,7 @@ contract Comptroller is ComptrollerV8Storage, ComptrollerInterface, ComptrollerE
     }
 
     function _setSeizePaused(bool state) public returns (bool) {
-        require(msg.sender == pauseGuardian || msg.sender == teamPauseGuardian || msg.sender == admin, "only pause guardian and admin can pause");
+        require(msg.sender == pauseGuardian || msg.sender == teamPauseGuardian || msg.sender == admin, "only pause guardian, team pause guardian and admin can pause");
         require(msg.sender == admin || state == true, "only admin can unpause");
 
         seizeGuardianPaused = state;
