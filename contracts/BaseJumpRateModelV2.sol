@@ -18,6 +18,11 @@ contract BaseJumpRateModelV2 {
     address public owner;
 
     /**
+     * @notice The address of the operatorGuardian, i.e. the bttc dao, which can update parameters directly
+     */
+    address public operatorGuardian;
+
+    /**
      * @notice The approximate number of blocks per year that is assumed by the interest rate model
      */
     uint public constant blocksPerYear = 15512500;
@@ -49,9 +54,11 @@ contract BaseJumpRateModelV2 {
      * @param jumpMultiplierPerYear The multiplierPerBlock after hitting a specified utilization point
      * @param kink_ The utilization point at which the jump multiplier is applied
      * @param owner_ The address of the owner, i.e. the Timelock contract (which has the ability to update parameters directly)
+     * @param operatorGuardian_ The address of the operatorGuardian, i.e. the bttc dao (which has the ability to update parameters directly)
      */
-    constructor(uint baseRatePerYear, uint multiplierPerYear, uint jumpMultiplierPerYear, uint kink_, address owner_) internal {
+    constructor(uint baseRatePerYear, uint multiplierPerYear, uint jumpMultiplierPerYear, uint kink_, address owner_, address operatorGuardian_) internal {
         owner = owner_;
+        operatorGuardian = operatorGuardian_;
 
         updateJumpRateModelInternal(baseRatePerYear,  multiplierPerYear, jumpMultiplierPerYear, kink_);
     }
@@ -64,7 +71,7 @@ contract BaseJumpRateModelV2 {
      * @param kink_ The utilization point at which the jump multiplier is applied
      */
     function updateJumpRateModel(uint baseRatePerYear, uint multiplierPerYear, uint jumpMultiplierPerYear, uint kink_) external {
-        require(msg.sender == owner, "only the owner may call this function.");
+        require(msg.sender == owner || msg.sender == operatorGuardian, "only the owner and operatorGuardian may call this function.");
 
         updateJumpRateModelInternal(baseRatePerYear, multiplierPerYear, jumpMultiplierPerYear, kink_);
     }

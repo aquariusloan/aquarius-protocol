@@ -33,8 +33,9 @@ contract DAIInterestRateModelV3 is JumpRateModelV2 {
      * @param pot_ The address of the Dai pot (where DSR is earned)
      * @param jug_ The address of the Dai jug (where SF is kept)
      * @param owner_ The address of the owner, i.e. the Timelock contract (which has the ability to update parameters directly)
+     * @param operatorGuardian_ The address of the operatorGuardian, i.e. the bttc dao (which has the ability to update parameters directly)
      */
-    constructor(uint jumpMultiplierPerYear, uint kink_, address pot_, address jug_, address owner_) JumpRateModelV2(0, 0, jumpMultiplierPerYear, kink_, owner_) public {
+    constructor(uint jumpMultiplierPerYear, uint kink_, address pot_, address jug_, address owner_, address operatorGuardian_) JumpRateModelV2(0, 0, jumpMultiplierPerYear, kink_, owner_, operatorGuardian_) public {
         gapPerBlock = 4e16 / blocksPerYear;
         pot = PotLike(pot_);
         jug = JugLike(jug_);
