@@ -1549,6 +1549,6 @@ contract Comptroller is ComptrollerV8Storage, ComptrollerInterface, ComptrollerE
      * @return The address of ARS
      */
     function getArsAddress() public view returns (address) {
-        return 0x8f57E33C1f7f6e2886eBA9f83464e5b308D83202;
+        return 0xACaDD8eaC98F66a959E0DfaB66E3a548A6E57ce6;
     }
 }
