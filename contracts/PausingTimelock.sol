@@ -6,24 +6,25 @@ import "./AToken.sol";
 interface IComptroller {
     // mapping(address => bool) public mintGuardianPaused;
 
-    function getMintGuardianPaused(AToken aToken) external returns(bool);
+    function getMintGuardianPaused(AToken aToken) external view returns(bool);
 
     // mapping(address => bool) public borrowGuardianPaused;
 
-    function getBorrowGuardianPaused(AToken aToken) external returns(bool);
+    function getBorrowGuardianPaused(AToken aToken) external view returns(bool);
 
-    function getAllMarkets() external returns (AToken[] memory);
+    function getAllMarkets() external view returns (AToken[] memory);
 }
 
 // Modified from Compound Timelock Admin
 // https://raw.githubusercontent.com/compound-finance/compound-protocol/master/contracts/Timelock.sol
-contract PausingTimelock is ATokenInterface {
+contract PausingTimelock {
     using SafeMath for uint;
 
     event NewAdmin(address indexed newAdmin);
     event NewPendingAdmin(address indexed newPendingAdmin);
     event NewEmergencyAdmin(address indexed newEmergencyAdmin);
     event NewPendingEmergencyAdmin(address indexed newPendingEmergencyAdmin);
+    event NewComptroller(address indexed newComptroller);
     event NewDelay(uint indexed newDelay);
     event CancelTransaction(bytes32 indexed txHash, address indexed target, uint value, string signature, bytes data, uint eta);
     event ExecuteTransaction(bytes32 indexed txHash, address indexed target, uint value, string signature, bytes data, uint eta);
@@ -97,6 +98,13 @@ contract PausingTimelock is ATokenInterface {
         emit NewPendingEmergencyAdmin(pendingEmergencyAdmin_);
     }
 
+    function setComptroller(address comptroller_) public {
+        require(msg.sender == address(this), "Timelock::setComptroller: Call must come from Timelock.");
+        comptroller = IComptroller(comptroller_);
+
+        emit NewComptroller(comptroller_);
+    }
+
     function queueTransaction(address target, uint value, string memory signature, bytes memory data, uint eta) public returns (bytes32) {
         if (getPausedMarkets()) {
             require(msg.sender == emergencyAdmin, "Timelock::queueTransaction: Call must come from emergency admin.");
@@ -163,7 +171,7 @@ contract PausingTimelock is ATokenInterface {
         emit RenounceEmergencyAdmin();
     }
 
-    function getPausedMarkets() internal returns (bool) {
+    function getPausedMarkets() public view returns (bool) {
         // Any paused market return TRUE
         bool paused = false;
         AToken[] memory allMarkets = comptroller.getAllMarkets();
