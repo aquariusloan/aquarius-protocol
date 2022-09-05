@@ -141,4 +141,15 @@ contract BaseJumpRateModelV2 {
 
         emit NewInterestParams(baseRatePerBlock, multiplierPerBlock, jumpMultiplierPerBlock, kink);
     }
+
+    /**
+     * @notice Update the owner of the interest rate model (only callable by owner and operatorGuardian)
+     */
+    function transferOwner(address owner_) external {
+        require(msg.sender == owner || msg.sender == operatorGuardian, "only the owner and operatorGuardian may transfer owner.");
+        require(owner_ != address(0), "invalid address");
+
+        owner = owner_;
+    }
+
 }
