@@ -43,13 +43,12 @@ contract PausingTimelock {
     address public pendingEmergencyAdmin;
     uint public delay;
     uint public pauseCount;
-    bool public isPaused;
 
     mapping (bytes32 => bool) public queuedTransactions;
 
-    constructor(address admin_, address emergencyAdmin_, uint delay_, address comptroller_) public {
-        require(delay_ >= MINIMUM_DELAY, "Timelock::constructor: Delay must exceed minimum delay.");
-        require(delay_ <= MAXIMUM_DELAY, "Timelock::setDelay: Delay must not exceed maximum delay.");
+    constructor(address admin_, address emergencyAdmin_, uint delay_, IComptroller comptroller_) public {
+        require(delay_ >= MINIMUM_DELAY, "PausingTimelock::constructor: Delay must exceed minimum delay.");
+        require(delay_ <= MAXIMUM_DELAY, "PausingTimelock::constructor: Delay must not exceed maximum delay.");
 
         admin = admin_;
         emergencyAdmin = emergencyAdmin_;
@@ -164,7 +163,7 @@ contract PausingTimelock {
     }
 
     function renounceEmergencyAdmin() public {
-        require(msg.sender == admin || msg.sender == emergencyAdmin, "Timelock:: call must come from admin or emergancy admin");
+        require(msg.sender == admin || msg.sender == emergencyAdmin, "Timelock:: call must come from admin or emergency admin");
 
         pendingAdmin = address(0);
 
