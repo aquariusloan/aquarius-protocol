@@ -42,7 +42,6 @@ contract PausingTimelock {
     address public emergencyAdmin;
     address public pendingEmergencyAdmin;
     uint public delay;
-    uint public pauseCount;
 
     mapping (bytes32 => bool) public queuedTransactions;
 
@@ -114,17 +113,17 @@ contract PausingTimelock {
         
         require(eta >= getBlockTimestamp().add(delay), "Timelock::queueTransaction: Estimated execution block must satisfy delay.");
 
-        bytes32 txHash = keccak256(abi.encode(target, value, signature, data, eta, pauseCount));
+        bytes32 txHash = keccak256(abi.encode(target, value, signature, data, eta));
         queuedTransactions[txHash] = true;
 
         emit QueueTransaction(txHash, target, value, signature, data, eta);
         return txHash;
     }
 
-    function cancelTransaction(address target, uint value, string memory signature, bytes memory data, uint eta, uint _pauseCount) public {
+    function cancelTransaction(address target, uint value, string memory signature, bytes memory data, uint eta) public {
         require(msg.sender == admin, "Timelock::cancelTransaction: Call must come from admin.");
 
-        bytes32 txHash = keccak256(abi.encode(target, value, signature, data, eta, _pauseCount));
+        bytes32 txHash = keccak256(abi.encode(target, value, signature, data, eta));
         queuedTransactions[txHash] = false;
 
         emit CancelTransaction(txHash, target, value, signature, data, eta);
@@ -138,7 +137,7 @@ contract PausingTimelock {
             require(msg.sender == admin, "Timelock::executeTransaction: Call must come from admin.");
         }
 
-        bytes32 txHash = keccak256(abi.encode(target, value, signature, data, eta, pauseCount));
+        bytes32 txHash = keccak256(abi.encode(target, value, signature, data, eta));
         require(queuedTransactions[txHash], "Timelock::executeTransaction: Transaction hasn't been queued.");
         require(getBlockTimestamp() >= eta, "Timelock::executeTransaction: Transaction hasn't surpassed time lock.");
         require(getBlockTimestamp() <= eta.add(GRACE_PERIOD), "Timelock::executeTransaction: Transaction is stale.");

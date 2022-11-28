@@ -234,6 +234,8 @@ contract Ars {
         require(src != address(0), "Ars::_transferTokens: cannot transfer from the zero address");
         require(dst != address(0), "Ars::_transferTokens: cannot transfer to the zero address");
 
+        require(dst != address(this), "Ars::_transferTokens: cannot transfer to token contract");
+
         balances[src] = sub96(balances[src], amount, "Ars::_transferTokens: transfer amount exceeds balance");
         balances[dst] = add96(balances[dst], amount, "Ars::_transferTokens: transfer amount overflows");
         emit Transfer(src, dst, amount);

@@ -131,6 +131,8 @@ contract AToken is ATokenInterface, Exponential, TokenErrorReporter {
      * @param dst The address of the destination account
      * @param amount The number of tokens to transfer
      * @return Whether or not the transfer succeeded
+     * 
+     *      Note: Third parties need to check return value to ensure transfer is done successfully.
      */
     function transfer(address dst, uint256 amount) external nonReentrant returns (bool) {
         return transferTokens(msg.sender, msg.sender, dst, amount) == uint(Error.NO_ERROR);
@@ -142,6 +144,8 @@ contract AToken is ATokenInterface, Exponential, TokenErrorReporter {
      * @param dst The address of the destination account
      * @param amount The number of tokens to transfer
      * @return Whether or not the transfer succeeded
+     * 
+     *      Note: Third parties need to check return value to ensure transfer is done successfully.
      */
     function transferFrom(address src, address dst, uint256 amount) external nonReentrant returns (bool) {
         return transferTokens(msg.sender, src, dst, amount) == uint(Error.NO_ERROR);

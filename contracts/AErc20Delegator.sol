@@ -154,6 +154,8 @@ contract AErc20Delegator is ATokenInterface, AErc20Interface, CDelegatorInterfac
      * @param dst The address of the destination account
      * @param amount The number of tokens to transfer
      * @return Whether or not the transfer succeeded
+     * 
+     *      Note: Third parties need to check return value to ensure transfer is done successfully.
      */
     function transfer(address dst, uint amount) external returns (bool) {
         bytes memory data = delegateToImplementation(abi.encodeWithSignature("transfer(address,uint256)", dst, amount));
@@ -166,6 +168,8 @@ contract AErc20Delegator is ATokenInterface, AErc20Interface, CDelegatorInterfac
      * @param dst The address of the destination account
      * @param amount The number of tokens to transfer
      * @return Whether or not the transfer succeeded
+     * 
+     *      Note: Third parties need to check return value to ensure transfer is done successfully.
      */
     function transferFrom(address src, address dst, uint256 amount) external returns (bool) {
         bytes memory data = delegateToImplementation(abi.encodeWithSignature("transferFrom(address,address,uint256)", src, dst, amount));

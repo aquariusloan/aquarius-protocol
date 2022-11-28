@@ -273,14 +273,14 @@ contract AErc20Interface is AErc20Storage {
     function _addReserves(uint addAmount) external returns (uint);
 }
 
-contract CDelegationStorage {
+contract ADelegationStorage {
     /**
      * @notice Implementation address for this contract
      */
     address public implementation;
 }
 
-contract CDelegatorInterface is CDelegationStorage {
+contract CDelegatorInterface is ADelegationStorage {
     /**
      * @notice Emitted when implementation is changed
      */
@@ -295,7 +295,7 @@ contract CDelegatorInterface is CDelegationStorage {
     function _setImplementation(address implementation_, bool allowResign, bytes memory becomeImplementationData) public;
 }
 
-contract ADelegateInterface is CDelegationStorage {
+contract ADelegateInterface is ADelegationStorage {
     /**
      * @notice Called by the delegator on a delegate to initialize it for duty
      * @dev Should revert if any issues arise which make it unfit for delegation
