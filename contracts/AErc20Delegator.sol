@@ -7,7 +7,7 @@ import "./ATokenInterfaces.sol";
  * @notice ATokens which wrap an EIP-20 underlying and delegate to an implementation
  * @author Aquarius
  */
-contract AErc20Delegator is ATokenInterface, AErc20Interface, CDelegatorInterface {
+contract AErc20Delegator is ATokenInterface, AErc20Interface, ADelegatorInterface {
     /**
      * @notice Construct a new money market
      * @param underlying_ The address of the underlying asset

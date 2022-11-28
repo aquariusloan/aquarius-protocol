@@ -280,7 +280,7 @@ contract ADelegationStorage {
     address public implementation;
 }
 
-contract CDelegatorInterface is ADelegationStorage {
+contract ADelegatorInterface is ADelegationStorage {
     /**
      * @notice Emitted when implementation is changed
      */
