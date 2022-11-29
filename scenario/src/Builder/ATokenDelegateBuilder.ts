@@ -9,8 +9,8 @@ import { Arg, Fetcher, getFetcherValue } from '../Command';
 import { storeAndSaveContract } from '../Networks';
 import { getContract, getTestContract } from '../Contract';
 
-const CDaiDelegateContract = getContract('CDaiDelegate');
-const CDaiDelegateScenarioContract = getTestContract('CDaiDelegateScenario');
+const ADaiDelegateContract = getContract('ADaiDelegate');
+const ADaiDelegateScenarioContract = getTestContract('ADaiDelegateScenario');
 const AErc20DelegateContract = getContract('AErc20Delegate');
 const AErc20DelegateScenarioContract = getTestContract('AErc20DelegateScenario');
 
@@ -30,12 +30,12 @@ export async function buildATokenDelegate(
   const fetchers = [
     new Fetcher<{ name: StringV; }, ATokenDelegateData>(
       `
-        #### CDaiDelegate
+        #### ADaiDelegate
 
-        * "CDaiDelegate name:<String>"
-          * E.g. "ATokenDelegate Deploy CDaiDelegate aDAIDelegate"
+        * "ADaiDelegate name:<String>"
+          * E.g. "ATokenDelegate Deploy ADaiDelegate aDAIDelegate"
       `,
-      'CDaiDelegate',
+      'ADaiDelegate',
       [
         new Arg('name', getStringV)
       ],
@@ -44,9 +44,9 @@ export async function buildATokenDelegate(
         { name }
       ) => {
         return {
-          invokation: await CDaiDelegateContract.deploy<AErc20Delegate>(world, from, []),
+          invokation: await ADaiDelegateContract.deploy<AErc20Delegate>(world, from, []),
           name: name.val,
-          contract: 'CDaiDelegate',
+          contract: 'ADaiDelegate',
           description: 'Standard CDai Delegate'
         };
       }
@@ -54,12 +54,12 @@ export async function buildATokenDelegate(
 
     new Fetcher<{ name: StringV; }, ATokenDelegateData>(
       `
-        #### CDaiDelegateScenario
+        #### ADaiDelegateScenario
 
-        * "CDaiDelegateScenario name:<String>" - A CDaiDelegate Scenario for local testing
-          * E.g. "ATokenDelegate Deploy CDaiDelegateScenario aDAIDelegate"
+        * "ADaiDelegateScenario name:<String>" - A ADaiDelegate Scenario for local testing
+          * E.g. "ATokenDelegate Deploy ADaiDelegateScenario aDAIDelegate"
       `,
-      'CDaiDelegateScenario',
+      'ADaiDelegateScenario',
       [
         new Arg('name', getStringV)
       ],
@@ -68,9 +68,9 @@ export async function buildATokenDelegate(
         { name }
       ) => {
         return {
-          invokation: await CDaiDelegateScenarioContract.deploy<AErc20DelegateScenario>(world, from, []),
+          invokation: await ADaiDelegateScenarioContract.deploy<AErc20DelegateScenario>(world, from, []),
           name: name.val,
-          contract: 'CDaiDelegateScenario',
+          contract: 'ADaiDelegateScenario',
           description: 'Scenario CDai Delegate'
         };
       }

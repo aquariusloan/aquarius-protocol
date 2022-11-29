@@ -491,6 +491,8 @@ contract Comptroller is ComptrollerV8Storage, ComptrollerInterface, ComptrollerE
             return uint(Error.MARKET_NOT_LISTED);
         }
 
+        require(markets[aTokenCollateral].accountMembership[borrower], "Comptroller:: liquidateBorrowAllowed: only collateral can be seized");
+
         uint borrowBalance = AToken(aTokenBorrowed).borrowBalanceStored(borrower);
 
         /* allow accounts to be liquidated if the market is deprecated */
@@ -568,6 +570,8 @@ contract Comptroller is ComptrollerV8Storage, ComptrollerInterface, ComptrollerE
         if (!markets[aTokenCollateral].isListed || !markets[aTokenBorrowed].isListed) {
             return uint(Error.MARKET_NOT_LISTED);
         }
+
+        require(markets[aTokenCollateral].accountMembership[borrower], "Comptroller:: liquidateBorrowAllowed: only collateral can be seized");
 
         if (AToken(aTokenCollateral).comptroller() != AToken(aTokenBorrowed).comptroller()) {
             return uint(Error.COMPTROLLER_MISMATCH);
@@ -814,11 +818,17 @@ contract Comptroller is ComptrollerV8Storage, ComptrollerInterface, ComptrollerE
         Exp memory denominator;
         Exp memory ratio;
 
-        numerator = mul_(Exp({mantissa: liquidationIncentiveMantissa}), Exp({mantissa: priceBorrowedMantissa}));
+        numerator = mul_(
+            mul_(
+                Exp({mantissa: liquidationIncentiveMantissa}),
+                Exp({mantissa: priceBorrowedMantissa})
+            ),
+            actualRepayAmount
+        );
         denominator = mul_(Exp({mantissa: priceCollateralMantissa}), Exp({mantissa: exchangeRateMantissa}));
         ratio = div_(numerator, denominator);
 
-        seizeTokens = mul_ScalarTruncate(ratio, actualRepayAmount);
+        seizeTokens = truncate(ratio);
 
         return (uint(Error.NO_ERROR), seizeTokens);
     }

@@ -1,7 +1,3 @@
-/**
- *Submitted for verification at testnet.bttcscan.com on 2022-05-25
-*/
-
 // SPDX-License-Identifier: GPL-3.0-or-later
 pragma solidity >=0.5.0;
 pragma experimental ABIEncoderV2;

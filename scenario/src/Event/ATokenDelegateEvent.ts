@@ -54,7 +54,7 @@ export function aTokenDelegateCommands() {
         #### Deploy
 
         * "ATokenDelegate Deploy ...aTokenDelegateParams" - Generates a new ATokenDelegate
-          * E.g. "ATokenDelegate Deploy CDaiDelegate aDAIDelegate"
+          * E.g. "ATokenDelegate Deploy ADaiDelegate aDAIDelegate"
       `,
       "Deploy",
       [new Arg("aTokenDelegateParams", getEventV, { variadic: true })],

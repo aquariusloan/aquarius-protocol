@@ -3,7 +3,7 @@ pragma solidity ^0.5.16;
 import "../../contracts/AErc20Immutable.sol";
 import "../../contracts/AErc20Delegator.sol";
 import "../../contracts/AErc20Delegate.sol";
-import "../../contracts/CDaiDelegate.sol";
+import "../../contracts/ADaiDelegate.sol";
 import "./ComptrollerScenario.sol";
 
 contract AErc20Harness is AErc20Immutable {
@@ -405,7 +405,7 @@ contract AErc20DelegateScenarioExtra is AErc20DelegateScenario {
     }
 }
 
-contract CDaiDelegateHarness is CDaiDelegate {
+contract ADaiDelegateHarness is ADaiDelegate {
     uint blockNumber = 100000;
     uint harnessExchangeRate;
     bool harnessExchangeRateStored;
@@ -440,7 +440,7 @@ contract CDaiDelegateHarness is CDaiDelegate {
     }
 }
 
-contract CDaiDelegateScenario is CDaiDelegate {
+contract ADaiDelegateScenario is ADaiDelegate {
     function setTotalBorrows(uint totalBorrows_) public {
         totalBorrows = totalBorrows_;
     }
@@ -455,7 +455,7 @@ contract CDaiDelegateScenario is CDaiDelegate {
     }
 }
 
-contract CDaiDelegateMakerHarness is PotLike, VatLike, GemLike, DaiJoinLike {
+contract ADaiDelegateMakerHarness is PotLike, VatLike, GemLike, DaiJoinLike {
     /* Pot */
 
     // exchangeRate

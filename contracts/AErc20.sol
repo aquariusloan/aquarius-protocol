@@ -118,6 +118,7 @@ contract AErc20 is AToken, AErc20Interface {
      * @param token The address of the ERC-20 token to sweep
      */
     function sweepToken(EIP20NonStandardInterface token) external {
+        require(msg.sender == admin, "AErc20::sweepToken: only admin can sweep tokens");
     	require(address(token) != underlying, "AErc20::sweepToken: can not sweep underlying token");
     	uint256 balance = token.balanceOf(address(this));
     	token.transfer(admin, balance);

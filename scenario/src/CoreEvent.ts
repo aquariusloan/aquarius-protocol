@@ -710,7 +710,7 @@ export const commands: (View<any> | ((world: World) => Promise<View<any>>))[] = 
       #### ATokenDelegate
 
       * "ATokenDelegate ...event" - Runs given ATokenDelegate event
-        * E.g. "ATokenDelegate Deploy CDaiDelegate cDaiDelegate"
+        * E.g. "ATokenDelegate Deploy ADaiDelegate cDaiDelegate"
     `,
     'ATokenDelegate',
     [new Arg('event', getEventV, { variadic: true })],

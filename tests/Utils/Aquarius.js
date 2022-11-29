@@ -151,9 +151,9 @@ async function makeAToken(opts = {}) {
       break;
 
     case 'cdai':
-      cDaiMaker  = await deploy('CDaiDelegateMakerHarness');
+      cDaiMaker  = await deploy('ADaiDelegateMakerHarness');
       underlying = cDaiMaker;
-      cDelegatee = await deploy('CDaiDelegateHarness');
+      cDelegatee = await deploy('ADaiDelegateHarness');
       cDelegator = await deploy('AErc20Delegator',
         [
           underlying._address,
@@ -168,7 +168,7 @@ async function makeAToken(opts = {}) {
           encodeParameters(['address', 'address'], [cDaiMaker._address, cDaiMaker._address])
         ]
       );
-      aToken = await saddle.getContractAt('CDaiDelegateHarness', cDelegator._address);
+      aToken = await saddle.getContractAt('ADaiDelegateHarness', cDelegator._address);
       break;
     
     case 'aars':

@@ -54,7 +54,7 @@ export async function buildAToken(
       #### AErc20Delegator
 
       * "AErc20Delegator symbol:<String> name:<String> underlying:<Address> comptroller:<Address> interestRateModel:<Address> initialExchangeRate:<Number> decimals:<Number> admin: <Address> implementation:<Address> becomeImplementationData:<String>" - The real deal AToken
-        * E.g. "AToken Deploy AErc20Delegator aDAI \"Aquarius DAI\" (Erc20 DAI Address) (Comptroller Address) (InterestRateModel Address) 1.0 8 Geoff (AToken CDaiDelegate Address) "0x0123434anyByTes314535q" "
+        * E.g. "AToken Deploy AErc20Delegator aDAI \"Aquarius DAI\" (Erc20 DAI Address) (Comptroller Address) (InterestRateModel Address) 1.0 8 Geoff (AToken ADaiDelegate Address) "0x0123434anyByTes314535q" "
     `,
       'AErc20Delegator',
       [
@@ -127,7 +127,7 @@ export async function buildAToken(
       #### AErc20DelegatorScenario
 
       * "AErc20DelegatorScenario symbol:<String> name:<String> underlying:<Address> comptroller:<Address> interestRateModel:<Address> initialExchangeRate:<Number> decimals:<Number> admin: <Address> implementation:<Address> becomeImplementationData:<String>" - A AToken Scenario for local testing
-        * E.g. "AToken Deploy AErc20DelegatorScenario aDAI \"Aquarius DAI\" (Erc20 DAI Address) (Comptroller Address) (InterestRateModel Address) 1.0 8 Geoff (AToken CDaiDelegate Address) "0x0123434anyByTes314535q" "
+        * E.g. "AToken Deploy AErc20DelegatorScenario aDAI \"Aquarius DAI\" (Erc20 DAI Address) (Comptroller Address) (InterestRateModel Address) 1.0 8 Geoff (AToken ADaiDelegate Address) "0x0123434anyByTes314535q" "
     `,
       'AErc20DelegatorScenario',
       [

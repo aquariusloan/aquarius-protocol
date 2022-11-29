@@ -1,7 +1,3 @@
-/**
- *Submitted for verification at testnet.bttcscan.com on 2022-05-26
-*/
-
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.5.0;
 pragma experimental ABIEncoderV2;

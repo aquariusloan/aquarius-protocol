@@ -27,7 +27,7 @@ Macro DeployCDAIWithDSR
     ForkMCD
     NewComptroller
     InterestRateModel Deploy Fixed StdInterest 0.000005
-    ATokenDelegate Deploy CDaiDelegate cDaiDelegate
+    ATokenDelegate Deploy ADaiDelegate cDaiDelegate
     From ATokenAdmin (AToken Deploy AErc20Delegator aDAI aDAI (Erc20 DAI Address) (Comptroller Address) (InterestRateModel StdInterest Address) 1e9 8 ATokenAdmin (ATokenDelegate cDaiDelegate Address) (EncodeParameters ("address" "address") (DaiJoinAddress PotAddress)))
     Comptroller SupportMarket aDAI
 
@@ -40,7 +40,7 @@ Macro DeployCDAI
     Comptroller SupportMarket aDAI
 
 Macro UpgradeToDSR
-    ATokenDelegate Deploy CDaiDelegate cDaiDelegate
+    ATokenDelegate Deploy ADaiDelegate cDaiDelegate
     From ATokenAdmin (AToken aDAI SetImplementation (ATokenDelegate cDaiDelegate Address) True (EncodeParameters ("address" "address") (DaiJoinAddress PotAddress)))
 
 Macro CheckBasicMintRedeem
@@ -148,7 +148,7 @@ Pending "Mint, upgrade to DSR, mint, and then reupgrade to a new cdai delegate"
     Assert Approx (AToken aDAI Cash) 2e18
     Assert Approx (MCD PotAt PotAddress "pie" (AToken aDAI Address)) 2e18
     -- Reupgrade to a new cDaiDelegate
-    ATokenDelegate Deploy CDaiDelegate cDaiDelegate2
+    ATokenDelegate Deploy ADaiDelegate cDaiDelegate2
     From ATokenAdmin (AToken aDAI SetImplementation (ATokenDelegate cDaiDelegate2 Address) True (EncodeParameters ("address" "address") (DaiJoinAddress PotAddress)))
     Assert Equal (Erc20 DAI TokenBalance aDAI) 0
     Assert Approx (AToken aDAI Cash) 2e18

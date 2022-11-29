@@ -7,7 +7,7 @@ import "./AErc20Delegate.sol";
  * @notice AToken which wraps Multi-Collateral DAI
  * @author Aquarius
  */
-contract CDaiDelegate is AErc20Delegate {
+contract ADaiDelegate is AErc20Delegate {
     /**
      * @notice DAI adapter address
      */
