@@ -818,17 +818,11 @@ contract Comptroller is ComptrollerV8Storage, ComptrollerInterface, ComptrollerE
         Exp memory denominator;
         Exp memory ratio;
 
-        numerator = mul_(
-            mul_(
-                Exp({mantissa: liquidationIncentiveMantissa}),
-                Exp({mantissa: priceBorrowedMantissa})
-            ),
-            actualRepayAmount
-        );
+        numerator = mul_(Exp({mantissa: liquidationIncentiveMantissa}), Exp({mantissa: priceBorrowedMantissa}));
         denominator = mul_(Exp({mantissa: priceCollateralMantissa}), Exp({mantissa: exchangeRateMantissa}));
         ratio = div_(numerator, denominator);
 
-        seizeTokens = truncate(ratio);
+        seizeTokens = mul_ScalarTruncate(ratio, actualRepayAmount);
 
         return (uint(Error.NO_ERROR), seizeTokens);
     }
