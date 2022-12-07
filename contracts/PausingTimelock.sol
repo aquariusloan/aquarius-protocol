@@ -106,8 +106,7 @@ contract PausingTimelock {
     function queueTransaction(address target, uint value, string memory signature, bytes memory data, uint eta) public returns (bytes32) {
         if (getPausedMarkets()) {
             require(msg.sender == emergencyAdmin, "Timelock::queueTransaction: Call must come from emergency admin.");
-        }
-        else {
+        } else {
             require(msg.sender == admin, "Timelock::queueTransaction: Call must come from admin.");
         }
         
@@ -121,7 +120,11 @@ contract PausingTimelock {
     }
 
     function cancelTransaction(address target, uint value, string memory signature, bytes memory data, uint eta) public {
-        require(msg.sender == admin, "Timelock::cancelTransaction: Call must come from admin.");
+        if (getPausedMarkets()) {
+            require(msg.sender == emergencyAdmin, "Timelock::cancelTransaction: Call must come from emergency admin.");
+        } else {
+            require(msg.sender == admin, "Timelock::cancelTransaction: Call must come from admin.");
+        }
 
         bytes32 txHash = keccak256(abi.encode(target, value, signature, data, eta));
         queuedTransactions[txHash] = false;
@@ -132,8 +135,7 @@ contract PausingTimelock {
     function executeTransaction(address target, uint value, string memory signature, bytes memory data, uint eta) public payable returns (bytes memory) {
         if (getPausedMarkets()) {
             require(msg.sender == emergencyAdmin, "Timelock::executeTransaction: Call must come from emergency admin.");
-        }
-        else {
+        } else {
             require(msg.sender == admin, "Timelock::executeTransaction: Call must come from admin.");
         }
 
@@ -161,13 +163,13 @@ contract PausingTimelock {
         return returnData;
     }
 
-    function renounceEmergencyAdmin() public {
-        require(msg.sender == admin || msg.sender == emergencyAdmin, "Timelock:: call must come from admin or emergency admin");
+    // function renounceEmergencyAdmin() public {
+    //     require(msg.sender == admin || msg.sender == emergencyAdmin, "Timelock:: call must come from admin or emergency admin");
 
-        pendingAdmin = address(0);
+    //     emergencyAdmin = address(0);
 
-        emit RenounceEmergencyAdmin();
-    }
+    //     emit RenounceEmergencyAdmin();
+    // }
 
     function getPausedMarkets() public view returns (bool) {
         // Any paused market return TRUE
