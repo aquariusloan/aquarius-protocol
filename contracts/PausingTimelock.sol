@@ -163,13 +163,13 @@ contract PausingTimelock {
         return returnData;
     }
 
-    // function renounceEmergencyAdmin() public {
-    //     require(msg.sender == admin || msg.sender == emergencyAdmin, "Timelock:: call must come from admin or emergency admin");
+    function renounceEmergencyAdmin() public {
+        require(msg.sender == admin || msg.sender == emergencyAdmin, "Timelock:: call must come from admin or emergency admin");
 
-    //     emergencyAdmin = address(0);
+        emergencyAdmin = address(0);
 
-    //     emit RenounceEmergencyAdmin();
-    // }
+        emit RenounceEmergencyAdmin();
+    }
 
     function getPausedMarkets() public view returns (bool) {
         // Any paused market return TRUE
