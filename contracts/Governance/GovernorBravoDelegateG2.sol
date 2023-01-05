@@ -3,7 +3,7 @@ pragma experimental ABIEncoderV2;
 
 import "./GovernorBravoInterfaces.sol";
 
-contract GovernorBravoDelegate is GovernorBravoDelegateStorageV3, GovernorBravoEvents {
+contract GovernorBravoDelegateG2 is GovernorBravoDelegateStorageV2, GovernorBravoEvents {
 
     /// @notice The name of this contract
     string public constant name = "Aquarius Governor Bravo";
@@ -75,7 +75,7 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV3, GovernorBravoE
         // Reject proposals before initiating as Governor
         require(initialProposalId != 0, "GovernorBravo::propose: Governor Bravo not active");
         // Allow addresses above proposal threshold and whitelisted addresses to propose
-        require(ars.getPriorVotes(msg.sender, sub256(block.number, 1)) > proposalThreshold || isWhitelisted(msg.sender) || isGuardian(msg.sender), "GovernorBravo::propose: proposer votes below proposal threshold");
+        require(ars.getPriorVotes(msg.sender, sub256(block.number, 1)) > proposalThreshold || isWhitelisted(msg.sender), "GovernorBravo::propose: proposer votes below proposal threshold");
         require(targets.length == values.length && targets.length == signatures.length && targets.length == calldatas.length, "GovernorBravo::propose: proposal function information arity mismatch");
         require(targets.length != 0, "GovernorBravo::propose: must provide actions");
         require(targets.length <= proposalMaxOperations, "GovernorBravo::propose: too many actions");
@@ -120,7 +120,7 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV3, GovernorBravoE
       * @param proposalId The id of the proposal to queue
       */
     function queue(uint proposalId) external {
-        require((state(proposalId) == ProposalState.Succeeded) || isGuardian(msg.sender), "GovernorBravo::queue: proposal can only be queued if it is succeeded");
+        require(state(proposalId) == ProposalState.Succeeded, "GovernorBravo::queue: proposal can only be queued if it is succeeded");
         Proposal storage proposal = proposals[proposalId];
         uint eta = add256(block.timestamp, timelock.delay());
         for (uint i = 0; i < proposal.targets.length; i++) {
@@ -140,7 +140,7 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV3, GovernorBravoE
       * @param proposalId The id of the proposal to execute
       */
     function execute(uint proposalId) external payable {
-        require((state(proposalId) == ProposalState.Queued) || isGuardian(msg.sender), "GovernorBravo::execute: proposal can only be executed if it is queued");
+        require(state(proposalId) == ProposalState.Queued, "GovernorBravo::execute: proposal can only be executed if it is queued");
         Proposal storage proposal = proposals[proposalId];
         proposal.executed = true;
         for (uint i = 0; i < proposal.targets.length; i++) {
@@ -154,21 +154,18 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV3, GovernorBravoE
       * @param proposalId The id of the proposal to cancel
       */
     function cancel(uint proposalId) external {
-        require((state(proposalId) != ProposalState.Executed) || isGuardian(msg.sender), "GovernorBravo::cancel: cannot cancel executed proposal");
+        require(state(proposalId) != ProposalState.Executed, "GovernorBravo::cancel: cannot cancel executed proposal");
 
         Proposal storage proposal = proposals[proposalId];
 
-        // Guardian can cancel
-        if(!isGuardian(msg.sender)) {
-            // Proposer can cancel
-            if(msg.sender != proposal.proposer) {
-                // Whitelisted proposers can't be canceled for falling below proposal threshold
-                if(isWhitelisted(proposal.proposer)) {
-                    require((ars.getPriorVotes(proposal.proposer, sub256(block.number, 1)) < proposalThreshold) && msg.sender == whitelistGuardian, "GovernorBravo::cancel: whitelisted proposer");
-                }
-                else {
-                    require((ars.getPriorVotes(proposal.proposer, sub256(block.number, 1)) < proposalThreshold), "GovernorBravo::cancel: proposer above threshold");
-                }
+        // Proposer can cancel
+        if(msg.sender != proposal.proposer) {
+            // Whitelisted proposers can't be canceled for falling below proposal threshold
+            if(isWhitelisted(proposal.proposer)) {
+                require((ars.getPriorVotes(proposal.proposer, sub256(block.number, 1)) < proposalThreshold) && msg.sender == whitelistGuardian, "GovernorBravo::cancel: whitelisted proposer");
+            }
+            else {
+                require((ars.getPriorVotes(proposal.proposer, sub256(block.number, 1)) < proposalThreshold), "GovernorBravo::cancel: proposer above threshold");
             }
         }
         
@@ -299,15 +296,6 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV3, GovernorBravoE
     }
 
     /**
-     * @notice View function which returns if an account is guardian
-     * @param account Account to check if guardian
-     * @return If the account is guardian
-     */
-    function isGuardian(address account) public view returns (bool) {
-        return (account == guardian);
-    }
-
-    /**
       * @notice Admin function for setting the voting delay
       * @param newVotingDelay new voting delay, in blocks
       */
@@ -423,47 +411,6 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV3, GovernorBravoE
 
         emit NewAdmin(oldAdmin, admin);
         emit NewPendingAdmin(oldPendingAdmin, pendingAdmin);
-    }
-
-    /**
-      * @notice Begins transfer of guardian rights. The newPendingGuardian must call `_acceptGuardian` to finalize the transfer.
-      * @dev Admin function to begin change of guardian. The newPendingGuardian must call `_acceptGuardian` to finalize the transfer.
-      * @param newPendingGuardian New pending guardian.
-      */
-    function _setPendingGuardian(address newPendingGuardian) external {
-        // Check caller = guardian
-        require(msg.sender == guardian || msg.sender == admin, "GovernorBravo:_setPendingGuardian: guardian only");
-
-        // Save current value, if any, for inclusion in log
-        address oldPendingGuardian = pendingGuardian;
-
-        // Store pendingGuardian with value newPendingGuardian
-        pendingGuardian = newPendingGuardian;
-
-        // Emit NewPendingGuardian(oldPendingGuardian, newPendingGuardian)
-        emit NewPendingGuardian(oldPendingGuardian, newPendingGuardian);
-    }
-
-    /**
-      * @notice Accepts transfer of guardian rights. msg.sender must be pendingGuardian
-      * @dev Admin function for pending guardian to accept role and update guardian
-      */
-    function _acceptGuardian() external {
-        // Check caller is pendingGuardian and pendingGuardian ≠ address(0)
-        require(msg.sender == pendingGuardian && msg.sender != address(0), "GovernorBravo:_acceptGuardian: pending guardian only");
-
-        // Save current values for inclusion in log
-        address oldGuardian = guardian;
-        address oldPendingGuardian = pendingGuardian;
-
-        // Store guardian with value pendingGuardian
-        guardian = pendingGuardian;
-
-        // Clear the pending value
-        pendingGuardian = address(0);
-
-        emit NewGuardian(oldGuardian, guardian);
-        emit NewPendingGuardian(oldPendingGuardian, pendingGuardian);
     }
 
     function add256(uint256 a, uint256 b) internal pure returns (uint) {

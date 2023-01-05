@@ -46,6 +46,12 @@ contract GovernorBravoEvents {
 
     /// @notice Emitted when the whitelistGuardian is set
     event WhitelistGuardianSet(address oldGuardian, address newGuardian);
+
+    /// @notice Emitted when pendingGuardian is changed
+    event NewPendingGuardian(address oldPendingGuardian, address newPendingGuardian);
+
+    /// @notice Emitted when pendingGuardian is accepted, which means guardian is updated
+    event NewGuardian(address oldGuardian, address newGuardian);
 }
 
 contract GovernorBravoDelegatorStorage {
@@ -174,6 +180,14 @@ contract GovernorBravoDelegateStorageV2 is GovernorBravoDelegateStorageV1 {
 
     /// @notice Address which manages whitelisted proposals and whitelist accounts
     address public whitelistGuardian;
+}
+
+contract GovernorBravoDelegateStorageV3 is GovernorBravoDelegateStorageV2 {
+    /// @notice Address of gurdian which can manage proposals without vote and threshold limit
+    address public guardian;
+
+    /// @notice Pending guardian for this contract
+    address public pendingGuardian;
 }
 
 interface TimelockInterface {

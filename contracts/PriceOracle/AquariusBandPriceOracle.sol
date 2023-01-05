@@ -24,12 +24,14 @@ interface IStdReference {
 contract AquariusBandPriceOracle is PriceOracle {
     using SafeMath for uint256;
     address public admin;
+    address public guardian;
 
     mapping(address => uint) prices;
     mapping(address => string) feedSymbols;
 
     event PricePosted(address asset, uint previousPriceMantissa, uint requestedPriceMantissa, uint newPriceMantissa);
     event NewAdmin(address oldAdmin, address newAdmin);
+    event NewGuardian(address oldGuardian, address newGuardian);
     event FeedSymbolUpdated(address underlying, string feedSymbol);
 
     IStdReference ref;
@@ -37,6 +39,7 @@ contract AquariusBandPriceOracle is PriceOracle {
     constructor(IStdReference _ref) public {
         ref = _ref;
         admin = msg.sender;
+        guardian = msg.sender;
     }
 
     function getUnderlyingPrice(AToken aToken) public view returns (uint) {
@@ -111,10 +114,18 @@ contract AquariusBandPriceOracle is PriceOracle {
     }
 
     function setAdmin(address newAdmin) external {
-        require(msg.sender == admin, "only admin can set new admin");
+        require(msg.sender == admin || msg.sender == guardian, "only admin and guardian can set new admin");
         address oldAdmin = admin;
         admin = newAdmin;
 
         emit NewAdmin(oldAdmin, newAdmin);
+    }
+
+    function setGuardian(address newGuardian) external {
+        require(msg.sender == guardian, "only guardian can set new guardian");
+        address oldGuardian = guardian;
+        guardian = newGuardian;
+
+        emit NewGuardian(oldGuardian, newGuardian);
     }
 }
