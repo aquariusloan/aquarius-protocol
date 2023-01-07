@@ -31,6 +31,8 @@ export const proposalStateEnums = {
 export interface GovernorBravoMethods {
   admin(): Callable<string>;
   pendingAdmin(): Callable<string>;
+  guardian(): Callable<string>;
+  pendingGuardian(): Callable<string>;
   implementation(): Callable<string>;
   propose(targets: string[], values: encodedNumber[], signatures: string[], calldatas: string[], description: string): Sendable<void>
   proposals(proposalId: number): Callable<Proposal>;
@@ -59,6 +61,8 @@ export interface GovernorBravoMethods {
   _setImplementation(address: string): Sendable<void>;
   _setPendingAdmin(address: string): Sendable<void>;
   _acceptAdmin(): Sendable<void>;
+  _setPendingGuardian(address: string): Sendable<void>;
+  _acceptGuardian(): Sendable<void>;
 }
 
 export interface GovernorBravo extends Contract {

@@ -304,6 +304,39 @@ async function acceptAdmin(
   return world;
 }
 
+async function setPendingGuardian(
+  world: World,
+  from: string,
+  governor: GovernorBravo,
+  newPendingGuardian: string
+): Promise<World> {
+  let invokation = await invoke(
+    world,
+    governor.methods._setPendingGuardian(newPendingGuardian),
+    from
+  );
+
+  world = addAction(
+    world,
+    `Governor pending guardian set to ${newPendingGuardian}`,
+    invokation
+  );
+
+  return world;
+}
+
+async function acceptGuardian(
+  world: World,
+  from: string,
+  governor: GovernorBravo
+): Promise<World> {
+  let invokation = await invoke(world, governor.methods._acceptGuardian(), from);
+
+  world = addAction(world, `Governor guardian accepted`, invokation);
+
+  return world;
+}
+
 async function setBlockNumber(
   world: World,
   from: string,
@@ -600,6 +633,35 @@ export function governorBravoCommands() {
       (world, from, { governor }) => acceptAdmin(world, from, governor),
       { namePos: 1 }
     ),
+    new Command<{ governor: GovernorBravo; newPendingGuardian: AddressV }>(
+      `
+        #### SetPendingGuardian
+
+        * "GovernorBravo <Governor> SetPendingGuardian <AddressV>" - Sets the address for the GovernorBravo pending guardian
+        * E.g. "GovernorBravo GovernorBravoScenario SetPendingGuardian newGuardian"
+    `,
+      "SetPendingGuardian",
+      [
+        new Arg("governor", getGovernorV),
+        new Arg("newPendingGuardian", getAddressV),
+      ],
+      (world, from, { governor, newPendingGuardian }) =>
+        setPendingGuardian(world, from, governor, newPendingGuardian.val),
+      { namePos: 1 }
+    ),
+    new Command<{ governor: GovernorBravo }>(
+      `
+        #### AcceptGuardian
+
+        * "GovernorBravo <Governor> AcceptGuardian" - Pending guardian accepts the guardian role
+        * E.g. "GovernorBravo GovernorBravoScenario AcceptGuardian"
+    `,
+      "AcceptGuardian",
+      [new Arg("governor", getGovernorV)],
+      (world, from, { governor }) => acceptGuardian(world, from, governor),
+      { namePos: 1 }
+    ),
+
 
     new Command<{
       governorDelegator: GovernorBravo;

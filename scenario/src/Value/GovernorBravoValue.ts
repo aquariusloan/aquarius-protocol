@@ -46,6 +46,20 @@ async function getPendingAdmin(
   return new AddressV(await governor.methods.pendingAdmin().call());
 }
 
+async function getGuardian(
+  world: World,
+  governor: GovernorBravo
+): Promise<AddressV> {
+  return new AddressV(await governor.methods.guardian().call());
+}
+
+async function getPendingGuardian(
+  world: World,
+  governor: GovernorBravo
+): Promise<AddressV> {
+  return new AddressV(await governor.methods.pendingGuardian().call());
+}
+
 async function getImplementation(
   world: World,
   governor: GovernorBravo
@@ -120,6 +134,32 @@ export function governorBravoFetchers() {
       "PendingAdmin",
       [new Arg("governor", getGovernorV)],
       (world, { governor }) => getPendingAdmin(world, governor),
+      { namePos: 1 }
+    ),
+
+    new Fetcher<{ governor: GovernorBravo }, AddressV>(
+      `
+        #### Guardian
+
+        * "GovernorBravo <Governor> Guardian" - Returns the address of governorBravo guardian
+        * E.g. "GovernorBravo GovernorBravoScenario Guardian"
+      `,
+      "Guardian",
+      [new Arg("governor", getGovernorV)],
+      (world, { governor }) => getGuardian(world, governor),
+      { namePos: 1 }
+    ),
+
+    new Fetcher<{ governor: GovernorBravo }, AddressV>(
+      `
+        #### Pending Guardian
+
+        * "GovernorBravo <Governor> PendingGuardian" - Returns the address of governorBravo pending guardian
+        * E.g. "GovernorBravo GovernorBravoScenario PendingGuardian"
+      `,
+      "PendingGuardian",
+      [new Arg("governor", getGovernorV)],
+      (world, { governor }) => getPendingGuardian(world, governor),
       { namePos: 1 }
     ),
 

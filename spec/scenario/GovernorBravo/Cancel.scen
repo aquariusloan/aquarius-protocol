@@ -64,7 +64,7 @@ Test "Cancel an Active proposal"
     Assert Log ProposalCanceled (id 2)
     Assert Equal ("Canceled") (GovernorBravo LegitGov Proposal LastProposal State)
 
-Test "Cancel a Succeded proposal"
+Test "Cancel a Succeeded proposal"
     GivenSucceededProposal
     From Root (Ars Delegate Geoff)
     GovernorBravo LegitGov Proposal LastProposal Cancel

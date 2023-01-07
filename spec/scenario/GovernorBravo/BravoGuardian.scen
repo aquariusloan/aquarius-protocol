@@ -1,0 +1,118 @@
+Macro DeployGov
+    SetBlockNumber 1
+    IncreaseTime 100
+    Counter Deploy CNT1
+    Timelock Deploy Jared 604800
+    Ars Deploy Bank
+    Enfranchise Root 20000001e18
+    Enfranchise Jared 20000000e18
+    GovernorBravo Deploy BravoDelegateHarness BravoDelegateHarness
+    GovernorBravo Deploy BravoDelegator LegitGov (Address Timelock) (Address Ars) (Address Root) (Address BravoDelegateHarness) 129600 1 10000000e18
+    GovernorBravo LegitGov MergeABI BravoDelegateHarness
+    GovernorBravo LegitGov HarnessInitiate
+    Timelock SetAdmin (Address LegitGov)
+
+Macro Enfranchise user amount
+    From Bank (Ars Transfer user amount)
+    From user (Ars Delegate user)
+
+Macro GivenPendingProposal
+    DeployGovAndTransferGuardian
+    MineBlock
+    MineBlock
+    From Robert (GovernorBravo LegitGov Propose "Add 2" [(Address CNT1)] [0] ["increment(uint256)"] [["2"]])
+    Assert Equal ("Pending") (GovernorBravo LegitGov Proposal LastProposal State)
+
+Macro GivenActiveProposal
+    GivenPendingProposal
+    MineBlock
+    MineBlock
+    Assert Equal ("Active") (GovernorBravo LegitGov Proposal LastProposal State)
+
+Macro GivenSucceededProposal
+    GivenActiveProposal
+
+Macro GivenQueuedProposal
+    GivenSucceededProposal
+    From Robert (GovernorBravo LegitGov Proposal LastProposal Queue)
+
+Macro GivenExecutedProposal
+    GivenQueuedProposal
+    FreezeTime 604901
+    From Robert (GovernorBravo LegitGov Proposal LastProposal Execute)
+    Assert Equal ("Executed") (GovernorBravo LegitGov Proposal LastProposal State)
+
+Macro DeployGovAndTransferGuardian
+	DeployGov
+	Assert Equal (Address Root) (GovernorBravo LegitGov Admin)
+	GovernorBravo LegitGov SetPendingGuardian (Address Robert)
+	From Robert (GovernorBravo LegitGov AcceptGuardian)
+	Assert Equal (Address Robert) (GovernorBravo LegitGov Guardian)
+
+Test "Admin Can Transfer Guardian"
+    DeployGovAndTransferGuardian
+
+Test "Guardian Can Transfer Guardian"
+    DeployGovAndTransferGuardian
+	Assert Equal (Address Robert) (GovernorBravo LegitGov Guardian)
+	From Robert (GovernorBravo LegitGov SetPendingGuardian (Address Jared))
+	From Jared (GovernorBravo LegitGov AcceptGuardian)
+	Assert Equal (Address Jared) (GovernorBravo LegitGov Guardian)
+
+Test "Propose 💍💍 [2 Actions]"
+    DeployGovAndTransferGuardian
+    Counter Deploy CounterA
+    Counter Deploy CounterB
+    From Robert (GovernorBravo LegitGov Propose "Add 5, Sub 3" [(Address CounterA) (Address CounterB)] [1 2] ["increment(uint256)" "decrement(uint256)"] [["5"] ["3"]])
+    Assert Log ProposalCreated (description "Add 5, Sub 3")
+    Assert Log ProposalCreated (targets [(Address CounterA) (Address CounterB)])
+    Assert Log ProposalCreated (values [1 2])
+    Assert Log ProposalCreated (signatures ["increment(uint256)" "decrement(uint256)"])
+    Assert Log ProposalCreated (calldatas ["0x0000000000000000000000000000000000000000000000000000000000000005" "0x0000000000000000000000000000000000000000000000000000000000000003"])
+    Assert Log ProposalCreated (proposer (Address Robert))
+    Assert Equal (GovernorBravo LegitGov Proposal LastProposal Targets) [(Address CounterA) (Address CounterB)]
+    Assert Equal (GovernorBravo LegitGov Proposal LastProposal Values) [1 2]
+    Assert Equal (GovernorBravo LegitGov Proposal LastProposal Signatures) ["increment(uint256)" "decrement(uint256)"]
+    Assert Equal (GovernorBravo LegitGov Proposal LastProposal Calldatas) ["0x0000000000000000000000000000000000000000000000000000000000000005" "0x0000000000000000000000000000000000000000000000000000000000000003"]
+
+Test "Queue simple action"
+    DeployGovAndTransferGuardian
+    From Robert (GovernorBravo LegitGov Propose "Add 5" [(Address CNT1)] [1] ["increment(uint256)"] [["2"]])
+    MineBlock
+    --guardian should be able to queue
+    From Robert (GovernorBravo LegitGov Proposal LastProposal Queue)
+    Assert True (Timelock QueuedTransaction (Timelock TxHash (Address CNT1) 1 (GovernorBravo LegitGov Proposal LastProposal Eta) "increment(uint256)" 2))
+    Assert Log ProposalQueued (id 2)
+    Assert Log ProposalQueued (eta (GovernorBravo LegitGov Proposal LastProposal Eta))
+    Assert True (Timelock QueuedTransaction (Timelock TxHash (Address CNT1) 1 (GovernorBravo LegitGov Proposal LastProposal Eta) "increment(uint256)" 2))
+
+Test "Execute a simple queued proposal with value"
+    GivenQueuedProposal
+    IncreaseTime 605000
+    From Robert (GovernorBravo LegitGov Proposal LastProposal Execute)
+    --Assert Equal ("Executed") (GovernorBravo LegitGov Proposal LastProposal State)
+    Assert Log ProposalExecuted (id 2)
+    Assert Equal (Counter CNT1 Count) 2
+
+Test "Cancel an Active proposal"
+    GivenActiveProposal
+    From Root (Ars Delegate Geoff)
+    From Robert (GovernorBravo LegitGov Proposal LastProposal Cancel)
+    Assert Log ProposalCanceled (id 2)
+    Assert Equal ("Canceled") (GovernorBravo LegitGov Proposal LastProposal State)
+
+Test "Cancel a Succeeded proposal"
+    GivenSucceededProposal
+    From Root (Ars Delegate Geoff)
+    From Robert (GovernorBravo LegitGov Proposal LastProposal Cancel)
+    Assert Log ProposalCanceled (id 2)
+    Assert Equal ("Canceled") (GovernorBravo LegitGov Proposal LastProposal State)
+
+Test "Cancel a queued proposal"
+    GivenQueuedProposal
+    Assert True (Timelock QueuedTransaction (Timelock TxHash (Address CNT1) 0 (GovernorBravo LegitGov Proposal LastProposal Eta) "increment(uint256)" 2))
+    From Root (Ars Delegate Geoff)
+    From Robert (GovernorBravo LegitGov Proposal LastProposal Cancel)
+    Assert Log ProposalCanceled (id 2)
+    Assert False (Timelock QueuedTransaction (Timelock TxHash (Address CNT1) 0 (GovernorBravo LegitGov Proposal LastProposal Eta) "increment(uint256)" 2))
+    Assert Equal ("Canceled") (GovernorBravo LegitGov Proposal LastProposal State)
