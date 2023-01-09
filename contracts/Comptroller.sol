@@ -1507,4 +1507,45 @@ contract Comptroller is ComptrollerV8Storage, ComptrollerInterface, ComptrollerE
     function getArsAddress() public view returns (address) {
         return 0xACaDD8eaC98F66a959E0DfaB66E3a548A6E57ce6;
     }
+
+    /**
+      * @notice CAUTION should use only in Comptroller
+      * @notice Begins transfer of admin rights in comptroller. The newPendingAdmin must call `_acceptAdminInComptroller` to finalize the transfer.
+      * @dev Admin function to begin change of admin. The newPendingAdmin must call `_acceptAdminInComptroller` to finalize the transfer.
+      * @param newPendingAdmin New pending admin.
+      * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
+      */
+    function _setPendingAdminInComptroller(address newPendingAdmin) public returns (uint) {
+        // Check caller = admin
+        if (msg.sender != admin) {
+            return fail(Error.UNAUTHORIZED, FailureInfo.SET_PENDING_ADMIN_OWNER_CHECK);
+        }
+
+        // Store pendingAdmin with value newPendingAdmin
+        pendingAdmin = newPendingAdmin;
+
+        return uint(Error.NO_ERROR);
+    }
+
+    /**
+      * @notice CAUTION should use only in Comptroller
+      * @notice Accepts transfer of admin rights. msg.sender must be pendingAdmin
+      * @dev Admin function for pending admin to accept role and update admin
+      * @return uint 0=success, otherwise a failure (see ErrorReporter.sol for details)
+      */
+    function _acceptAdminInComptroller() public returns (uint) {
+        // Check caller is pendingAdmin and pendingAdmin ≠ address(0)
+        if (msg.sender != pendingAdmin || msg.sender == address(0)) {
+            return fail(Error.UNAUTHORIZED, FailureInfo.ACCEPT_ADMIN_PENDING_ADMIN_CHECK);
+        }
+
+        // Store admin with value pendingAdmin
+        admin = pendingAdmin;
+
+        // Clear the pending value
+        pendingAdmin = address(0);
+
+        return uint(Error.NO_ERROR);
+    }
+
 }
