@@ -64,7 +64,7 @@ spec/certora/Comptroller/%.cvl:
 
 spec/certora/aDAI/%.cvl:
 	$(CERTORA_RUN) \
-	 spec/certora/contracts/CDaiDelegateCertora.sol \
+	 spec/certora/contracts/ADaiDelegateCertora.sol \
 	 spec/certora/contracts/UnderlyingModelNonStandard.sol \
 	 spec/certora/contracts/mcd/dai.sol:Dai \
 	 spec/certora/contracts/mcd/pot.sol:Pot \
@@ -72,13 +72,13 @@ spec/certora/aDAI/%.cvl:
 	 spec/certora/contracts/mcd/join.sol:DaiJoin \
 	 tests/Contracts/BoolComptroller.sol \
 	--link \
-	 CDaiDelegateCertora:comptroller=BoolComptroller \
-	 CDaiDelegateCertora:underlying=Dai \
-	 CDaiDelegateCertora:potAddress=Pot \
-	 CDaiDelegateCertora:vatAddress=Vat \
-	 CDaiDelegateCertora:daiJoinAddress=DaiJoin \
+	 ADaiDelegateCertora:comptroller=BoolComptroller \
+	 ADaiDelegateCertora:underlying=Dai \
+	 ADaiDelegateCertora:potAddress=Pot \
+	 ADaiDelegateCertora:vatAddress=Vat \
+	 ADaiDelegateCertora:daiJoinAddress=DaiJoin \
 	--verify \
-	 CDaiDelegateCertora:$@ \
+	 ADaiDelegateCertora:$@ \
 	--settings -cache=certora-run-cdai
 
 spec/certora/AErc20/%.cvl:

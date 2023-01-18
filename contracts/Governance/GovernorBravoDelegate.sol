@@ -143,12 +143,12 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV3, GovernorBravoE
       * @notice Executes a queued proposal if eta has passed
       * @param proposalId The id of the proposal to execute
       */
-    function execute(uint proposalId) external payable {
+    function execute(uint proposalId) external {
         require((state(proposalId) == ProposalState.Queued) || isGuardian(msg.sender), "GovernorBravo::execute: proposal can only be executed if it is queued");
         Proposal storage proposal = proposals[proposalId];
         proposal.executed = true;
         for (uint i = 0; i < proposal.targets.length; i++) {
-            timelock.executeTransaction.value(proposal.values[i])(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], proposal.eta);
+            timelock.executeTransaction(proposal.targets[i], proposal.values[i], proposal.signatures[i], proposal.calldatas[i], proposal.eta);
         }
         emit ProposalExecuted(proposalId);
     }
@@ -357,7 +357,7 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV3, GovernorBravoE
      * @param expiration Expiration for account whitelist status as timestamp (if now < expiration, whitelisted)
      */
     function _setWhitelistAccountExpiration(address account, uint expiration) external {
-        require(msg.sender == admin || msg.sender == whitelistGuardian, "GovernorBravo::_setWhitelistAccountExpiration: admin only");
+        require(msg.sender == admin || msg.sender == whitelistGuardian || isGuardian(msg.sender), "GovernorBravo::_setWhitelistAccountExpiration: admin or guardian  only");
         whitelistAccountExpirations[account] = expiration;
 
         emit WhitelistAccountExpirationSet(account, expiration);
@@ -368,12 +368,12 @@ contract GovernorBravoDelegate is GovernorBravoDelegateStorageV3, GovernorBravoE
      * @param account Account to set whitelistGuardian to (0x0 to remove whitelistGuardian)
      */
      function _setWhitelistGuardian(address account) external {
-        require(msg.sender == admin, "GovernorBravo::_setWhitelistGuardian: admin only");
+        require(msg.sender == admin || isGuardian(msg.sender), "GovernorBravo::_setWhitelistGuardian: admin or guardian only");
         address oldGuardian = whitelistGuardian;
         whitelistGuardian = account;
 
         emit WhitelistGuardianSet(oldGuardian, whitelistGuardian);
-     }
+    }
 
     /**
       * @notice Initiate the GovernorBravo contract
